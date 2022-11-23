@@ -1,0 +1,15 @@
+[package]
+name = "aes_gcm_keygen"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+aes-gcm = { version="0.10.1" }
+ring = { version="0.16.20" }
+
+[dev-dependencies]
+criterion = { version="0.3", features=["html_reports"] }
+
+[[bench]]
+name = "keygen"
+harness = false

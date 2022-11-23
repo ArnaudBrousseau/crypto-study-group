@@ -1,0 +1,6 @@
+
+[workspace]
+members = [
+  "2022-11-18/aes_gcm_keygen",
+  "2022-11-18/vigenere",
+]
