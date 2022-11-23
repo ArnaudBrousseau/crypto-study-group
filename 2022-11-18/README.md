@@ -12,10 +12,10 @@ In the same vein: splitting a cryptocurrency wallet seed phrase between 24 parti
 ## Homework related to chapter 2
 * [x] **Consider a group of 30 people who wish to establish pair-wise secure communications using symmetric-key cryptography. How many keys need to be exchanged in total?**
 
-for 2 people: 1 key
-for 3 people: (2 people) + 2 keys for the new participant = 3 keys
-for 4 people: (3 people) + 3 keys for the new participant = 6 keys
-for 5 people: (4 people) + 4 keys for the new participant = 10 keys = 4+3+2+1 keys
+for 2 people: 1 key  
+for 3 people: (2 people) + 2 keys for the new participant = 3 keys  
+for 4 people: (3 people) + 3 keys for the new participant = 6 keys  
+for 5 people: (4 people) + 4 keys for the new participant = 10 keys = 4+3+2+1 keys  
 ...etc...
 
 Formula for `n` people: `1 + 2 + 3 + ... + n-1` = `n-1 * n / 2`
