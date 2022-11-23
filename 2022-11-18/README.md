@@ -95,7 +95,7 @@ Use the Uncloak discord and ask to see if there's a good soul willing to unblock
 
 Implemented in [vigenere/](./vigenere/) in 95 lines total, or 53 lines if we exclude tests!
 
-* [ ] What is a side channel attack? Is your cipher implementation constant time?
+* [x] What is a side channel attack? Is your cipher implementation constant time?
 
 A side-channel attack is defined as an attack which makes use of information leakage related to the context of the computation. For example: time it was performed, time it took to perform it, length of the result, etc.
 
