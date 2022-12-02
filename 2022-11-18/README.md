@@ -118,3 +118,7 @@ TODO
 In chapter 2: "one of the classical mistakes in cryptography is to think that encrypting a message also stops Eve from changing it. It doesn't."
 
 I'm not sure that's true. If we're talking about a strong symmetric encryption scheme where keys are exchanged already, an attacker modifying the messages would simply cause decryption failures. They wouldn't be able to change the message in a way that results in successful decryptions :thinking:
+
+In "New Directions in Cryptography":
+* "Unconditional security results from the existence of multiple solutions to a cryptogram. For example, the simple substitution cryptogram XMD resulting from English text can represent the plaintext messages: now, and, the, etc." ==> what? Given a single key/algorithm, there should only be a single solution to a cryptogram right?
+* "The only unconditionally secure system in common use is the one time pad" => How so? An attacker could break the encryption if it's iterating over all the possible keys. Would love to see the "proof"

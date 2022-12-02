@@ -3,4 +3,6 @@
 members = [
   "2022-11-18/aes_gcm_keygen",
   "2022-11-18/vigenere",
+  "2022-11-25/aes_utils",
+  "2022-11-25/des_utils",
 ]
