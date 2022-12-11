@@ -74,7 +74,7 @@ gpg: encrypted with rsa3072 key, ID 1754EE5268AC2CAC, created 2022-12-02
 80000000000000000000000000000001
 ```
 
-* [ ] **Write a program that experimentally demonstrates the complementation property for DES. This program should take as input a key K and a plaintext P and demonstrate that the DES complementation property holds for this key and plaintext. You may use an existing cryptography library for this exercise.**
+* [x] **Write a program that experimentally demonstrates the complementation property for DES. This program should take as input a key K and a plaintext P and demonstrate that the DES complementation property holds for this key and plaintext. You may use an existing cryptography library for this exercise.**
 
 See [`des_utils`](./des_utils/). Running this program encrypts s with k, then encrypts complement(s) with complement(k). The result is printed byte-by-byte, it's easy to see that:
 ```
