@@ -1,0 +1,17 @@
+[package]
+name = "hash_fns"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+blake3 = { version="1.3.3" }
+sha3 = { version="0.10.6" }
+sha2 = { version="0.10.6" }
+rand = {version="0.8.5"}
+
+[dev-dependencies]
+criterion = { version="0.3", features=["html_reports"] }
+
+[[bench]]
+name = "hash_random"
+harness = false

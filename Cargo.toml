@@ -5,4 +5,6 @@ members = [
   "2022-11-18/vigenere",
   "2022-11-25/aes_utils",
   "2022-11-25/des_utils",
+  "2022-12-02/sha512n",
+  "2022-12-02/hash_fns",
 ]

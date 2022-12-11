@@ -1,0 +1,9 @@
+[package]
+name = "sha512n"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+sha2 = { version="0.10.6" }
+hex = { version="0.4.3" }
+bitvec = { version="1.0.1" }
