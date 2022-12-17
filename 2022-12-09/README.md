@@ -19,7 +19,7 @@ The notes & assigned homework are [here](https://uncloak.org/courses/rust+crypto
 
 **Reading message content (confidentiality)**: prevented by the Key Exchange protocol, which yields a session key under which all messages are encrypted. The session key is derived from a client random, a server random, and a pre-master secret.
 
-**Tampering with message content (integrity)**: prevented with MACs in the encrypted payloads, when using authenticated encryptions as the cipher suite. For example, `TLS_CHACHA20_POLY1305_SHA256` or `TLS_DHE_RSA_WITH_AES_128_GCM_SHA256 ` use Poly1305 and GCM to provide integrity.
+**Tampering with message content (integrity)**: prevented with MACs in the encrypted payloads, when using authenticated encryptions as the cipher suite. For example, `TLS_CHACHA20_POLY1305_SHA256` or `TLS_DHE_RSA_WITH_AES_128_GCM_SHA256 ` use Poly1305 and GCM to provide integrity. It's funny that these schemes are generally called "authenticated encryption": really they provide integrity!
 
 **Impersonating either party (authenticity)**: this is prevented by the Certificate Message, when the server sends its certificates. The client can then verify that it's actually talking to the right server as opposed to a malicious one.
 
