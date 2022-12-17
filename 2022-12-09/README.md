@@ -4,15 +4,24 @@ The notes & assigned homework are [here](https://uncloak.org/courses/rust+crypto
 
 ## Homework related to Chapter 7
 
-* [ ] **Justify or disqualify each of the following schemes, with message `m`, tag `t`, and ciphertext `c`.**
+* [x] **Justify or disqualify each of the following schemes, with message `m`, tag `t`, and ciphertext `c`.**
   * `t = MAC(m)`, `c = E(m)`, send `(c, t)`
   * `t = MAC(m)`, `c = E(m||t)`, send `c`
   * `c = E(m)`, `t = MAC(c)`, send `(c, t)`
 
-* [ ] **You're the adversary, watching a TLS handshake. Pick three steps from [TLS Handshake - OSDev Wiki](https://wiki.osdev.org/TLS_Handshake#Handshake_Overview), and describe how the step prevents you from (pick one):**
-  * reading message content (confidentiality)
-  * tampering with message content (integrity)
-  * impersonating either party (authenticity)
+  The first scheme seems secure. This is a typical encrypt-and-MAC scheme. An attacker cannot read the message because it's encrypted, cannot tamper with the message content because the MAC ensures integrity.
+
+  The second scheme might have an integrity problem: an attacker could modify `c` in transit, and decryption must take place before the MAC construction can be checked. But that's a typical trade-off in MAC-then-encrypt schemes. This can be made secure.
+
+  The third scheme feels secure as well: this is a typical encrypt-then-MAC scheme. If the underlying MAC function is strong, this scheme is secure.
+
+* [x] **You're the adversary, watching a TLS handshake. Pick three steps from [TLS Handshake - OSDev Wiki](https://wiki.osdev.org/TLS_Handshake#Handshake_Overview), and describe how the step prevents you from reading message content (confidentiality), tampering with message content (integrity), and impersonating either party (authenticity).
+
+**Reading message content (confidentiality)**: prevented by the Key Exchange protocol, which yields a session key under which all messages are encrypted. The session key is derived from a client random, a server random, and a pre-master secret.
+
+**Tampering with message content (integrity)**: prevented with MACs in the encrypted payloads, when using authenticated encryptions as the cipher suite. For example, `TLS_CHACHA20_POLY1305_SHA256` or `TLS_DHE_RSA_WITH_AES_128_GCM_SHA256 ` use Poly1305 and GCM to provide integrity.
+
+**Impersonating either party (authenticity)**: this is prevented by the Certificate Message, when the server sends its certificates. The client can then verify that it's actually talking to the right server as opposed to a malicious one.
 
 ## Extra Reading
 
