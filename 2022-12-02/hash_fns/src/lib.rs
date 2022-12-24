@@ -1,7 +1,6 @@
 use rand::prelude::*;
+use sha2::Sha256;
 use sha3::{Digest, Sha3_256};
-use sha2::{Sha256};
-
 
 fn random_bytes() -> Vec<u8> {
     let mut data = [0u8; 8];

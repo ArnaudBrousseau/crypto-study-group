@@ -1,9 +1,9 @@
 use aes_gcm::{
-    aead::{KeyInit, OsRng, rand_core::RngCore},
-    Aes256Gcm
+    aead::{rand_core::RngCore, KeyInit, OsRng},
+    Aes256Gcm,
 };
 
-use ring::{aead};
+use ring::aead;
 
 pub fn rust_crypto_aes_gcm_keygen() -> () {
     let _ = Aes256Gcm::generate_key(&mut OsRng);

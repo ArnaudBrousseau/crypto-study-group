@@ -1,7 +1,7 @@
 use bitvec::prelude::*;
 use std::str::from_utf8;
 
-use sha2::{Sha512, Digest};
+use sha2::{Digest, Sha512};
 
 pub fn sha512n(message: &[u8], n: usize) -> BitVec<u8> {
     assert!(n > 0, "sha512n cannot run with n <= 0");
@@ -25,7 +25,7 @@ pub fn find_collision(target: BitVec<u8>, base: &[u8]) -> Vec<u8> {
         candidate.append(&mut nonce_bytes);
         let res = sha512n(&candidate, target.len());
         if res == target {
-            return candidate
+            return candidate;
         }
         // If the candidate isn't a match, keep going by incrementing the nonce
         nonce += 1;
@@ -46,7 +46,10 @@ fn main() {
 
     // Now we can also target hashes directly. Exercise 5.4 asks for something which hashes to 3D 4B
     let collision = find_collision(
-        hex::decode("3D4B").unwrap().view_bits::<LocalBits>().to_bitvec(),
+        hex::decode("3D4B")
+            .unwrap()
+            .view_bits::<LocalBits>()
+            .to_bitvec(),
         collision_base,
     );
     println!(
@@ -55,7 +58,10 @@ fn main() {
     );
 
     let collision = find_collision(
-        hex::decode("3D4B").unwrap().view_bits::<LocalBits>().to_bitvec(),
+        hex::decode("3D4B")
+            .unwrap()
+            .view_bits::<LocalBits>()
+            .to_bitvec(),
         b"foo",
     );
     println!(
@@ -64,7 +70,10 @@ fn main() {
     );
 
     let collision = find_collision(
-        hex::decode("3D4B").unwrap().view_bits::<LocalBits>().to_bitvec(),
+        hex::decode("3D4B")
+            .unwrap()
+            .view_bits::<LocalBits>()
+            .to_bitvec(),
         b"bar",
     );
     println!(
@@ -73,14 +82,16 @@ fn main() {
     );
 
     let collision = find_collision(
-        hex::decode("3D4B").unwrap().view_bits::<LocalBits>().to_bitvec(),
+        hex::decode("3D4B")
+            .unwrap()
+            .view_bits::<LocalBits>()
+            .to_bitvec(),
         b"baz",
     );
     println!(
         "Collision found! \"{}\" hashes to 3D4B... with SHA-512",
         from_utf8(&collision).unwrap(),
     );
-
 }
 #[cfg(test)]
 mod tests {
@@ -89,28 +100,21 @@ mod tests {
     use bitvec::prelude::*;
     use std::str::from_utf8;
 
-
     #[test]
     fn test_sha512n() {
         assert_eq!(sha512n(b"hello", 1), bitvec![1]);
-        assert_eq!(sha512n(b"hello", 8), bitvec![1,1,0,1,1,0,0,1]);
-        
+        assert_eq!(sha512n(b"hello", 8), bitvec![1, 1, 0, 1, 1, 0, 0, 1]);
+
         // Collision under sha-512-8, see next test!
-        assert_eq!(sha512n(b"world66", 8), bitvec![1,1,0,1,1,0,0,1]);
+        assert_eq!(sha512n(b"world66", 8), bitvec![1, 1, 0, 1, 1, 0, 0, 1]);
     }
 
     #[test]
     fn test_collision() {
         // See previous test, "hello" and "world66" have the same first 8 bits with SHA-512
         assert_eq!(
-            from_utf8(
-                &find_collision(
-                    sha512n(b"hello", 8),
-                    b"world",
-                )
-            ).unwrap(),
+            from_utf8(&find_collision(sha512n(b"hello", 8), b"world",)).unwrap(),
             "world66"
         );
     }
-
 }

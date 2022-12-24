@@ -1,7 +1,7 @@
-use aes::Aes256;
-use aes::cipher::{KeyInit, BlockEncrypt};
-use aes::cipher::generic_array::{GenericArray};
+use aes::cipher::generic_array::GenericArray;
 use aes::cipher::BlockDecrypt;
+use aes::cipher::{BlockEncrypt, KeyInit};
+use aes::Aes256;
 
 /// Takes a hex-encoded string and decrypts it with a key, also hex-encoded
 /// Uses AES-256

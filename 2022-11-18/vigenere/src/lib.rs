@@ -8,7 +8,7 @@ pub fn vigenere_encrypt(plaintext: String, key: String) -> String {
         let offset = key_nums[i % key_nums.len()];
         ciphertext_nums.push((plaintext_char + offset) % 26)
     }
-    return to_string(ciphertext_nums)
+    return to_string(ciphertext_nums);
 }
 
 /// Decrypt a ciphertext with a given key
@@ -23,17 +23,17 @@ pub fn vigenere_decrypt(ciphertext: String, key: String) -> String {
             plaintext_nums.push(ciphertext_char - offset)
         }
     }
-    return to_string(plaintext_nums)
+    return to_string(plaintext_nums);
 }
 
 fn alphabet_index(c: char) -> u32 {
     assert!(c as u32 >= 0x61 && c as u32 <= 0x7a);
-    return c as u32 - 0x61
+    return c as u32 - 0x61;
 }
 
 fn to_char(i: u32) -> char {
     assert!(i <= 25);
-    return char::from_u32(i + 0x61).unwrap()
+    return char::from_u32(i + 0x61).unwrap();
 }
 
 fn to_vec(s: String) -> Vec<u32> {
@@ -41,15 +41,15 @@ fn to_vec(s: String) -> Vec<u32> {
     for c in s.chars() {
         res.push(alphabet_index(c));
     }
-    return res
+    return res;
 }
 
-fn to_string(v: Vec<u32>) -> String{
+fn to_string(v: Vec<u32>) -> String {
     let mut s: String = "".to_string();
     for num in v {
         s.push(to_char(num))
     }
-    return s
+    return s;
 }
 
 #[test]
@@ -61,7 +61,7 @@ fn test_alphabet_index() {
 }
 
 #[test]
-#[should_panic(expected="assertion failed")]
+#[should_panic(expected = "assertion failed")]
 fn test_alphabet_index_panics() {
     alphabet_index('-');
 }
@@ -86,10 +86,16 @@ fn test_to_string() {
 
 #[test]
 fn test_encrypt() {
-    assert_eq!(vigenere_encrypt("attackatdawn".to_string(), "lemon".to_string()), "lxfopvefrnhr".to_string())
+    assert_eq!(
+        vigenere_encrypt("attackatdawn".to_string(), "lemon".to_string()),
+        "lxfopvefrnhr".to_string()
+    )
 }
 
 #[test]
 fn test_decrypt() {
-    assert_eq!(vigenere_decrypt("lxfopvefrnhr".to_string(), "lemon".to_string()), "attackatdawn".to_string())
+    assert_eq!(
+        vigenere_decrypt("lxfopvefrnhr".to_string(), "lemon".to_string()),
+        "attackatdawn".to_string()
+    )
 }
