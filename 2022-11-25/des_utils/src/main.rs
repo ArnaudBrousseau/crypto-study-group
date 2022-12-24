@@ -9,7 +9,7 @@ pub fn encrypt(s: [u8; 8], k: [u8; 8]) -> [u8; 8] {
     let cipher = Des::new(&key);
 
     cipher.encrypt_block(&mut block);
-    return block.into();
+    block.into()
 }
 
 /// Takes an array of bytes and decrypts it with DES
@@ -19,7 +19,7 @@ pub fn decrypt(s: [u8; 8], k: [u8; 8]) -> [u8; 8] {
     let cipher = Des::new(&key);
 
     cipher.decrypt_block(&mut block);
-    return block.into();
+    block.into()
 }
 
 fn main() {
@@ -32,6 +32,6 @@ fn main() {
     for i in 0..8 {
         println!("orig. byte#{}: {:#010b}", i, c[i]);
         println!("comp. byte#{}: {:#010b}", i, c_prime[i]);
-        println!("")
+        println!()
     }
 }

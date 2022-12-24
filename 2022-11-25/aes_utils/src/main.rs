@@ -6,27 +6,27 @@ use aes::Aes256;
 /// Takes a hex-encoded string and decrypts it with a key, also hex-encoded
 /// Uses AES-256
 pub fn decrypt(s: String, k: String) -> String {
-    let block_bytes: [u8; 16] = hex::decode(s.replace(" ", "")).unwrap().try_into().unwrap();
-    let key_bytes: [u8; 32] = hex::decode(k.replace(" ", "")).unwrap().try_into().unwrap();
+    let block_bytes: [u8; 16] = hex::decode(s.replace(' ', "")).unwrap().try_into().unwrap();
+    let key_bytes: [u8; 32] = hex::decode(k.replace(' ', "")).unwrap().try_into().unwrap();
 
     let mut block = GenericArray::from(block_bytes);
     let key = GenericArray::from(key_bytes);
     let cipher = Aes256::new(&key);
 
     cipher.decrypt_block(&mut block);
-    return hex::encode(block.to_vec());
+    hex::encode(block)
 }
 
 pub fn encrypt(s: String, k: String) -> String {
-    let block_bytes: [u8; 16] = hex::decode(s.replace(" ", "")).unwrap().try_into().unwrap();
-    let key_bytes: [u8; 32] = hex::decode(k.replace(" ", "")).unwrap().try_into().unwrap();
+    let block_bytes: [u8; 16] = hex::decode(s.replace(' ', "")).unwrap().try_into().unwrap();
+    let key_bytes: [u8; 32] = hex::decode(k.replace(' ', "")).unwrap().try_into().unwrap();
 
     let mut block = GenericArray::from(block_bytes);
     let key = GenericArray::from(key_bytes);
     let cipher = Aes256::new(&key);
 
     cipher.encrypt_block(&mut block);
-    return hex::encode(block.to_vec());
+    hex::encode(block)
 }
 
 fn main() {

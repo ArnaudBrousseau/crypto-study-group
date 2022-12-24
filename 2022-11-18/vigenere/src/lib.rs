@@ -8,7 +8,7 @@ pub fn vigenere_encrypt(plaintext: String, key: String) -> String {
         let offset = key_nums[i % key_nums.len()];
         ciphertext_nums.push((plaintext_char + offset) % 26)
     }
-    return to_string(ciphertext_nums);
+    to_string(ciphertext_nums)
 }
 
 /// Decrypt a ciphertext with a given key
@@ -23,17 +23,17 @@ pub fn vigenere_decrypt(ciphertext: String, key: String) -> String {
             plaintext_nums.push(ciphertext_char - offset)
         }
     }
-    return to_string(plaintext_nums);
+    to_string(plaintext_nums)
 }
 
 fn alphabet_index(c: char) -> u32 {
     assert!(c as u32 >= 0x61 && c as u32 <= 0x7a);
-    return c as u32 - 0x61;
+    c as u32 - 0x61
 }
 
 fn to_char(i: u32) -> char {
     assert!(i <= 25);
-    return char::from_u32(i + 0x61).unwrap();
+    char::from_u32(i + 0x61).unwrap()
 }
 
 fn to_vec(s: String) -> Vec<u32> {
@@ -41,7 +41,7 @@ fn to_vec(s: String) -> Vec<u32> {
     for c in s.chars() {
         res.push(alphabet_index(c));
     }
-    return res;
+    res
 }
 
 fn to_string(v: Vec<u32>) -> String {
@@ -49,7 +49,7 @@ fn to_string(v: Vec<u32>) -> String {
     for num in v {
         s.push(to_char(num))
     }
-    return s;
+    s
 }
 
 #[test]

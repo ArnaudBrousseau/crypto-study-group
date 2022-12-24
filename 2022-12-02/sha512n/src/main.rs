@@ -12,7 +12,7 @@ pub fn sha512n(message: &[u8], n: usize) -> BitVec<u8> {
     let result = hasher.finalize().to_vec();
 
     let bits = result.view_bits::<LocalBits>();
-    return bits[0..n].to_bitvec();
+    bits[0..n].to_bitvec()
 }
 
 /// Finds a collision for a target bitvec
@@ -20,7 +20,7 @@ pub fn sha512n(message: &[u8], n: usize) -> BitVec<u8> {
 pub fn find_collision(target: BitVec<u8>, base: &[u8]) -> Vec<u8> {
     let mut nonce: u32 = 0;
     loop {
-        let mut candidate = base.clone().to_vec();
+        let mut candidate = base.to_vec();
         let mut nonce_bytes = nonce.to_string().as_bytes().to_vec();
         candidate.append(&mut nonce_bytes);
         let res = sha512n(&candidate, target.len());

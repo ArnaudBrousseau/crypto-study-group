@@ -6,5 +6,6 @@
         "Diffie",
         "keygen",
         "PKCS"
-    ]
+    ],
+    "rust-analyzer.checkOnSave.command": "clippy"
 }
