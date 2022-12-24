@@ -8,7 +8,9 @@ The notes & assigned homework are [here](https://uncloak.org/courses/rust+crypto
 
 * [ ] **Implement a type-level program using `PhantomData` to parameterize the state of a struct.**
 
-* [ ] **Put CI on a project. Deny lints, failing tests, and failing formatting.**
+* [x] **Put CI on a project. Deny lints, failing tests, and failing formatting.**
+
+CI is in place for this project now. `cargo fmt`, `clippy`, and tests.
 
 * [ ] **Compile your codebase with a malicious feature. Test against it in an integration test.**
 
