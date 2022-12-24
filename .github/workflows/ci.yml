@@ -1,4 +1,4 @@
-name: Rust Github CI
+name: Rust CI
 
 on:
   push:
