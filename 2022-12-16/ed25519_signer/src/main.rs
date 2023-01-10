@@ -1,15 +1,13 @@
-use ed25519_dalek::{Signer, Verifier};
-use rand_core::{OsRng};
-use thiserror::Error;
 use anyhow::Result;
+use ed25519_dalek::{Signer, Verifier};
+use rand_core::OsRng;
+use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum Ed25519Error {
     #[error("Error while signing or verifying with ed25519_dalek")]
-    SignatureError(#[from] ed25519_dalek::SignatureError)
+    SignatureError(#[from] ed25519_dalek::SignatureError),
 }
-
-
 
 // States
 // Transaction empty
@@ -24,7 +22,9 @@ fn ed25519_sign(msg: &str) -> Result<Vec<u8>> {
     let signature = signing_key.sign(msg_bytes);
 
     let verify_key = signing_key.public;
-    verify_key.verify(msg_bytes, &signature).map_err(Ed25519Error::from)?;
+    verify_key
+        .verify(msg_bytes, &signature)
+        .map_err(Ed25519Error::from)?;
 
     Ok(signature.to_bytes().to_vec())
 }
