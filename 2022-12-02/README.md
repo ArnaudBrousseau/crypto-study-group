@@ -72,13 +72,13 @@ We'll also use the fact that for any 1-block message, `a xor a xor b = b` (2)
 `     = M(a||b)` by (1)<br>
 QED
 
-* [x] Suppose message `a` is one block long. Suppose that an attacker has received the MAC `t` for `a` using CBC-MAC under some random key unknown to the attacker. Explain how to forge the MAC for a two-block message of your choice. What is the two-block message that you chose? What is the tag that you chose? Why is your chosen tag a valid tag for your two-block message?
+* [x] **Suppose message `a` is one block long. Suppose that an attacker has received the MAC `t` for `a` using CBC-MAC under some random key unknown to the attacker. Explain how to forge the MAC for a two-block message of your choice. What is the two-block message that you chose? What is the tag that you chose? Why is your chosen tag a valid tag for your two-block message?**
 
 In this case we have `t = M(a)`. We cannot forge new MACs because the key is unknown.
 
 We can, however, forge `M(a||x) = M(a) xor x = t xor x`. That's a length extension attack possible due to the nature of CBC-MAC.
 
-* [x] **Using an existing cryptography library, compute the MAC of the message: `4D 41 43 73 20 61 72 65 20 76 65 72 79 20 75 73 65 66 75 6C 20 69 6E 20 63 72 79 70 74 6F 67 72 61 70 68 79 21 20 20 20 20 20 20 20 20 20 20 20` using CBC-MAC with AES and the 256-bit key: `80 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01`
+* [x] **Using an existing cryptography library, compute the MAC of the message: `4D 41 43 73 20 61 72 65 20 76 65 72 79 20 75 73 65 66 75 6C 20 69 6E 20 63 72 79 70 74 6F 67 72 61 70 68 79 21 20 20 20 20 20 20 20 20 20 20 20` using CBC-MAC with AES and the 256-bit key: `80 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01`**
 
 Requires OpenSSL > 3.0:
 ```sh
