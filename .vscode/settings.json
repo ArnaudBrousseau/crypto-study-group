@@ -3,9 +3,13 @@
         "bitvec",
         "ciphertext",
         "cryptosystem",
+        "dalek",
         "Diffie",
         "keygen",
-        "PKCS"
+        "Keypair",
+        "PKCS",
+        "thiserror",
+        "zeroize"
     ],
     "rust-analyzer.checkOnSave.command": "clippy"
 }
