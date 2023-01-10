@@ -1,0 +1,17 @@
+[package]
+name = "ed25519_signer"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+ed25519-dalek = { version = "1.0.1", default-features = false, features = ["u32_backend", "std"] }
+
+# It sucks, need to use an old version to be compatible with ed25519-dalek
+rand_core = { version = "0.5.0", default-features = false, features= ["std"] }
+
+# For more ergonomic error handling
+thiserror = { version = "1.0.38" }
+anyhow = { version = "1.0.68" }
+hex = { version = "0.4.3" }

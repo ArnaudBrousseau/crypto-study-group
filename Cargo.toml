@@ -7,4 +7,6 @@ members = [
   "2022-11-25/des_utils",
   "2022-12-02/sha512n",
   "2022-12-02/hash_fns",
+  "2022-12-16/ed25519_signer",
+  "2022-12-16/zeroize_bug",
 ]
