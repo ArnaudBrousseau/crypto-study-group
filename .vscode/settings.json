@@ -11,7 +11,9 @@
         "PKCS",
         "PRNG",
         "Schnorr",
+        "struct",
         "thiserror",
+        "typenum",
         "zeroize"
     ],
     "rust-analyzer.checkOnSave.command": "clippy"
