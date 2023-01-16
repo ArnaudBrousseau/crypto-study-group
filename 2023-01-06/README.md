@@ -15,7 +15,18 @@ Fortuna is actually pretty intuitive: 32 entropy "buckets" or "pools" are made a
 
 At the core, a block cipher is used to generate blocks of random data. The generator has a key K (refreshed and reseeded periodically) and a counter C. Just like any PRNG, the generator uses a block cipher encryption function E to produce blocks of pseudorandom data. When a request for random data is done the key K is rotated to the result of 2 new blocks. If we ask for 3 blocks of random data, we get `E(K, C)`, `E(K, C+1)`, `E(K, C+2)`, then the key K is rotated to `E(K, C+3)||E(K,C+4)`.
 
-* [ ] **Pick one implementer of `CryptoRng`, and explain how the Rng generates values. See [CryptoRng in rand](https://rust-random.github.io/rand/rand/trait.CryptoRng.html) for a list.**
+* [x] **Pick one implementer of `CryptoRng`, and explain how the Rng generates values. See [CryptoRng in rand](https://rust-random.github.io/rand/rand/trait.CryptoRng.html) for a list.**
+
+Picking `OsRng`, because I've used it in the past. The [linked source](https://rust-random.github.io/rand/src/rand_core/os.rs.html#51) defers most of the actual implementation to 
+```
+use crate::{impls, CryptoRng, Error, RngCore};
+use getrandom::getrandom;
+```
+
+The `impls`, `Error`, `RngCore`, and `CryptoRng` imports are trait imports. Entropy is sourced from [`getrandom`](https://github.com/rust-random/getrandom), where different compile targets source from different places. For example, on MacOSX, a mix of `getentropy` (syscall) and reading from `/dev/random` (essentially the same thing). See [this file](https://github.com/rust-random/getrandom/blob/master/src/macos.rs).
+
+In pure Rust, several CSPRNG are implemented, and documented at [our RNGs](https://rust-random.github.io/book/guide-rngs.html).
+The standard Rust RNG is based on chacha with 12 rounds: see [here](https://github.com/rust-random/rand/blob/master/src/rngs/std.rs#L15), then [here](https://github.com/rust-random/rand/blob/4bde8a0adb517ec956fcec91665922f6360f974b/rand_chacha/src/chacha.rs#L338) for the implementation (leveraging macros), and finally [here](https://github.com/rust-random/rand/blob/4bde8a0adb517ec956fcec91665922f6360f974b/rand_chacha/src/guts.rs#L70) for the "guts" implementing ChaCha rounds.
 
 ## Homework related to Chapter 10
 
@@ -31,12 +42,16 @@ A "hard" operation means that it can't be solved in polynomial time. EEA compute
 
 ## Homework related to Rust
 
-* [ ] **Using the [typenum crate](https://docs.rs/typenum/latest/typenum/), modify the following struct to wrap a generically sized array. Implement a new, len, and get_index method for the array.**
+* [x] **Using the [typenum crate](https://docs.rs/typenum/latest/typenum/), modify the following struct to wrap a generically sized array. Implement a new, len, and get_index method for the array.**
+
 ```rust
 struct GenArrayWrapper<T>{
     inner: Vec<T>
 }
 ```
+See [gen_sized_array](./gen_sized_array/). Chose to implement this with const generics to avoid using external crates, but the [`generic_array`](https://docs.rs/generic-array/latest/generic_array/)+[`typenum`](https://docs.rs/typenum/latest/typenum/) combo is more common, because more flexible.
+
+By the way, there is no way to do this purely with `typenum`. `generic_array` is the authoritative crate to solve that particular problem (lack of generic array in the Rust language).
 
 ## Extra reading
 
