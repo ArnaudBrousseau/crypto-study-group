@@ -3,8 +3,6 @@ name = "ed25519_signer"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 ed25519-dalek = { version = "1.0.1", default-features = false, features = ["u32_backend", "std"] }
 
