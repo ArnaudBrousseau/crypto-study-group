@@ -128,7 +128,9 @@ If we actually want the proper inverse (in the range 0 <= inv <= 2357), the answ
 
 To verify the 1603 is the inverse of 397 modulo 2357, we check that 1603*397 = 1 (mod 2357) -- this has been verified! :white_check_mark:
 
-* [ ] **Recursively implement the Extended Euclidean Algorithm. Use the above exercise as a test case.**
+* [x] **Recursively implement the Extended Euclidean Algorithm. Use the above exercise as a test case.**
+
+Done in [`eea`](./eea/).
 
 * [ ] **Implement the Miller-Rabin primality check.** ([reference implementation](https://docs.rs/pumpkin/2.0.1/src/pumpkin/common.rs.html#213))
 
