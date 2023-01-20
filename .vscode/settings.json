@@ -9,6 +9,7 @@
         "keygen",
         "Keypair",
         "PKCS",
+        "primality",
         "PRNG",
         "Schnorr",
         "struct",
