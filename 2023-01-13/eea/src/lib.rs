@@ -6,10 +6,12 @@ pub fn eea(a: i32, b: i32) -> (i32, i32, i32) {
     if a == 0 || b == 0 {
         return (-1, -1, -1);
     }
+    
     if a > b {
-        return compute_eea(b, a, 1, 0, 0, 1);
+        compute_eea(b, a, 1, 0, 0, 1)
+    } else {
+        compute_eea(a, b, 1, 0, 0, 1)
     }
-    return compute_eea(a, b, 1, 0, 0, 1);
 }
 
 /// Recursive inner function
@@ -21,7 +23,7 @@ fn compute_eea(a: i32, b: i32, ua: i32, va: i32, ub: i32, vb: i32) -> (i32, i32,
     let quotient = b/a;
     let remainder = b - quotient*a;
 
-    return compute_eea(remainder, a, ub-quotient*ua, vb-quotient*va, ua, va)
+    compute_eea(remainder, a, ub-quotient*ua, vb-quotient*va, ua, va)
 }
 
 #[cfg(test)]
