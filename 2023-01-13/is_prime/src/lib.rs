@@ -10,7 +10,7 @@ pub fn is_prime(n: u32) -> bool {
             }
         }
     }
-    return true;
+    true
 }
 
 #[cfg(test)]
