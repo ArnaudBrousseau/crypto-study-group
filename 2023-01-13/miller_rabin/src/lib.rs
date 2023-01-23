@@ -24,7 +24,7 @@ pub enum MillerRabinError {
 /// of the algorithm in Cryptography Engineering (Ferguson, Schneier, Kohno).
 /// This function expects bytes in Big-Endian order.
 /// Under the hood, we use crypto-bigint's U8192.
-/// Hence this function errors if `bytes` has more than 1,024 bytes.
+/// Hence this function errors if `bytes` has more than 1,024 u8 elements.
 pub fn miller_rabin(bytes: Vec<u8>) -> Result<bool, MillerRabinError> {
     const REQUIRED_BYTE_LENGTH_FOR_U8192: usize = 1024;
 
@@ -32,14 +32,14 @@ pub fn miller_rabin(bytes: Vec<u8>) -> Result<bool, MillerRabinError> {
         return Err(MillerRabinError::TooManyBytes(bytes.len()));
     }
 
-    // Compute padding (`bytes` may or may not be shorter than `U8192::LIMBS` bytes)
+    // Compute padding (`bytes` may or may not be shorter than 1,024 bytes)
     let mut padding = vec![];
     if bytes.len() < REQUIRED_BYTE_LENGTH_FOR_U8192 {
         let pad_len = REQUIRED_BYTE_LENGTH_FOR_U8192 - bytes.len();
         padding = vec![0u8; pad_len];
     }
 
-    // Container for our final bytes (exactly `U8192::LIMBS` bytes)
+    // Container for our final bytes (exactly 1,024 bytes)
     let mut sized_bytes = vec![];
     sized_bytes.extend(padding);
     sized_bytes.extend(bytes);
