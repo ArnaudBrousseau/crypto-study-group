@@ -9,15 +9,15 @@ pub enum MillerRabinError {
     #[error("This function only supports up to 1,024 bytes of input. Got {0}.")]
     TooManyBytes(usize),
     #[error("The Miller-Rabin test only allows testing numbers > 3. Found n <= 3")]
-    LowInteger(U8192),
+    LowInteger(),
     #[error("The Miller-Rabin test only allows testing odd number. n is even.")]
-    EvenInteger(U8192),
+    EvenInteger(),
     #[error("Cannot find random number with 2 <= n <= limit")]
-    CannotPickRandomBasis(U8192),
+    CannotPickRandomBasis(),
     #[error("Multiplication modulo p requires both operands to be < p")]
-    MulModOperandTooHigh(U8192),
+    MulModOperandTooHigh(),
     #[error("Exponentiation modulo p requires operand to be < p")]
-    PowMulOperandTooHigh(U8192),
+    PowMulOperandTooHigh(),
 }
 
 /// Implementation of Miller-Rabbin primality test based on the description
@@ -46,15 +46,15 @@ pub fn miller_rabin(bytes: Vec<u8>) -> Result<bool, MillerRabinError> {
 
     let n = U8192::from_be_slice(&sized_bytes);
     if n <= U8192::from(3u8) {
-        return Err(MillerRabinError::LowInteger(n));
+        return Err(MillerRabinError::LowInteger());
     }
     if bool::from(n.is_even()) {
-        return Err(MillerRabinError::EvenInteger(n));
+        return Err(MillerRabinError::EvenInteger());
     }
 
     // Compute (s, t) such that s is odd and s.2^t = n-1
     let n_minus_one = n.checked_sub(&U8192::ONE).unwrap();
-    let mut s = n_minus_one.clone();
+    let mut s = n_minus_one;
     let mut t = 0;
     while bool::from(s.is_even()) {
         s = s.checked_div(&U8192::from(2u8)).unwrap();
@@ -86,54 +86,54 @@ pub fn miller_rabin(bytes: Vec<u8>) -> Result<bool, MillerRabinError> {
             }
         }
     }
-    return Ok(true);
+    Ok(true)
 }
 
 // Computes n^k (mod p)
 // Errors when n >= p
 fn pow_mod(n: &U8192, k: &U8192, p: &U8192) -> Result<U8192, MillerRabinError> {
     if n >= p {
-        return Err(MillerRabinError::PowMulOperandTooHigh(*n));
+        return Err(MillerRabinError::PowMulOperandTooHigh());
     }
     let mut res = U8192::ONE;
     // Series: n, n^2, n^4, n^8...n^(2^k)
-    let mut exp_n = n.clone();
+    let mut exp_n = *n;
     // Series: m, n/2, m/4, ...m/(2^k)
-    let mut divided_k = k.clone();
+    let mut divided_k = *k;
 
     while divided_k != U8192::ZERO {
         // If last bit is one (odd number), we multiply by exp_n
         if bool::from(divided_k.is_odd()) {
-            res = mul_mod(&res, &exp_n, &p)?;
+            res = mul_mod(&res, &exp_n, p)?;
         }
-        divided_k = divided_k >> 1;
+        divided_k >>= 1;
         exp_n = mul_mod(&exp_n, &exp_n, p)?;
     }
-    return Ok(res);
+    Ok(res)
 }
 
 // Computes n * m (mod p)
 // Errors when n >= p
 fn mul_mod(n: &U8192, m: &U8192, p: &U8192) -> Result<U8192, MillerRabinError> {
     if n >= p {
-        return Err(MillerRabinError::MulModOperandTooHigh(*n));
+        return Err(MillerRabinError::MulModOperandTooHigh());
     }
 
     let mut res = U8192::ZERO;
     // Series: n, 2n, 4n, 8n...(2^k)n
-    let mut doubled_n = n.clone();
+    let mut doubled_n = *n;
     // Series: m, n/2, m/4, ...m/(2^k)
-    let mut divided_m = m.clone();
+    let mut divided_m = *m;
 
     while divided_m != U8192::ZERO {
         // If last bit is one (odd number), we add "multiplied n"
         if bool::from(divided_m.is_odd()) {
-            res = res.add_mod(&doubled_n, &p);
+            res = res.add_mod(&doubled_n, p);
         }
-        divided_m = divided_m >> 1;
-        doubled_n = doubled_n.add_mod(&doubled_n, &p);
+        divided_m >>= 1;
+        doubled_n = doubled_n.add_mod(&doubled_n, p);
     }
-    return Ok(res);
+    Ok(res)
 }
 
 /// Get a random number 2 <= n <= `limit`, of bit size `bit_size`.
@@ -150,30 +150,30 @@ fn get_random(bit_size: usize, limit: U8192) -> Result<U8192, MillerRabinError> 
 
     while retry_counter < MAX_RANDOM_RETRIES {
         let mut num = U8192::random(OsRng);
-        num = num >> 8192 - bit_size;
+        num >>= 8192 - bit_size;
         if num > U8192::ONE && num <= limit {
             return Ok(num);
         }
         retry_counter += 1;
     }
-    return Err(MillerRabinError::CannotPickRandomBasis(limit));
+    Err(MillerRabinError::CannotPickRandomBasis())
 }
 
 // Returns the number of non-zero bits of a U8192.
 // To do this we iterate with the right-shift operator until we reach 0.
 // There's probably a more performant way to do this, by e.g. iterating on limbs?
 fn bit_len(n: &U8192) -> usize {
-    let mut n = n.clone();
+    let mut n = *n;
     let mut bit_len = 0;
     while bit_len < 8192 {
         if n == U8192::ZERO {
             return bit_len;
         } else {
-            n = n >> 1;
+            n >>= 1;
             bit_len += 1
         }
     }
-    return 8192;
+    8192
 }
 
 #[cfg(test)]
