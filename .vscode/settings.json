@@ -8,13 +8,17 @@
         "Diffie",
         "keygen",
         "Keypair",
+        "Kohno",
         "PKCS",
         "primality",
         "PRNG",
+        "Schneier",
         "Schnorr",
+        "secp",
         "struct",
         "thiserror",
         "typenum",
+        "vigenere",
         "zeroize"
     ],
     "rust-analyzer.checkOnSave.command": "clippy"
