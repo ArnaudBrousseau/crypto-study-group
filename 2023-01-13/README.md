@@ -132,7 +132,9 @@ To verify the 1603 is the inverse of 397 modulo 2357, we check that 1603*397 = 1
 
 Done in [`eea`](./eea/).
 
-* [ ] **Implement the Miller-Rabin primality check.** ([reference implementation](https://docs.rs/pumpkin/2.0.1/src/pumpkin/common.rs.html#213))
+* [x] **Implement the Miller-Rabin primality check.** ([reference implementation](https://docs.rs/pumpkin/2.0.1/src/pumpkin/common.rs.html#213))
+
+Done in [`miller_rabin`](./miller_rabin/)!
 
 ## Homework related to Chapter 11
 
