@@ -20,14 +20,15 @@ pub enum MillerRabinError {
     PowMulOperandTooHigh,
 }
 
+const REQUIRED_BYTE_LENGTH_FOR_U8192: usize = 1024;
+const MAX_RANDOM_RETRIES: usize = 100;
+
 /// Implementation of Miller-Rabbin primality test based on the description
 /// of the algorithm in Cryptography Engineering (Ferguson, Schneier, Kohno).
 /// This function expects bytes in Big-Endian order.
 /// Under the hood, we use crypto-bigint's U8192.
 /// Hence this function errors if `bytes` has more than 1,024 u8 elements.
 pub fn miller_rabin(bytes: Vec<u8>) -> Result<bool, MillerRabinError> {
-    const REQUIRED_BYTE_LENGTH_FOR_U8192: usize = 1024;
-
     if bytes.len() > REQUIRED_BYTE_LENGTH_FOR_U8192 {
         Err(MillerRabinError::TooManyBytes(bytes.len()))?;
     }
@@ -145,7 +146,6 @@ fn mul_mod(n: &U8192, m: &U8192, p: &U8192) -> Result<U8192, MillerRabinError> {
 /// if `bit_size` is set way higher than log2(limit), randomly picking an integer
 /// of `bit_size` length is unlikely to be within (2, limit) -- it'll usually be way higher!
 fn get_random(bit_size: usize, limit: U8192) -> Result<U8192, MillerRabinError> {
-    const MAX_RANDOM_RETRIES: usize = 100;
     let mut retry_counter = 0;
 
     while retry_counter < MAX_RANDOM_RETRIES {
