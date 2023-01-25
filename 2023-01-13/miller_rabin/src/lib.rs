@@ -29,7 +29,7 @@ pub fn miller_rabin(bytes: Vec<u8>) -> Result<bool, MillerRabinError> {
     const REQUIRED_BYTE_LENGTH_FOR_U8192: usize = 1024;
 
     if bytes.len() > REQUIRED_BYTE_LENGTH_FOR_U8192 {
-        return Err(MillerRabinError::TooManyBytes(bytes.len()));
+        Err(MillerRabinError::TooManyBytes(bytes.len()))?;
     }
 
     // Compute padding (`bytes` may or may not be shorter than 1,024 bytes)
