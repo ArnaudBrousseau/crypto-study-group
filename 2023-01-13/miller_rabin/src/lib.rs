@@ -47,6 +47,7 @@ pub fn miller_rabin(bytes: Vec<u8>) -> Result<bool, MillerRabinError> {
     }
 
     // Compute (s, t) such that s is odd and s.2^t = n-1
+    // Safe to unwrap because n is > 3. No underflow risk here.
     let n_minus_one = n.checked_sub(&U8192::ONE).unwrap();
     let mut s = n_minus_one;
     let mut t = 0;
