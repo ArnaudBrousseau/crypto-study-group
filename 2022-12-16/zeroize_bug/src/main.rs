@@ -19,7 +19,7 @@ fn main() {
         private_key: *b"PRIV",
     };
     let secret_mem_locus = key_pair.private_key.as_ptr();
-    println!("Secret locus: {:p}", secret_mem_locus);
+    println!("Secret locus: {secret_mem_locus:p}");
     drop(key_pair);
     println!("Keypair erased...or is it?");
 

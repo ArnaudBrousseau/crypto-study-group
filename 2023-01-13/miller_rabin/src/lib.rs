@@ -1,4 +1,5 @@
 use std::vec;
+// tk: cargo clippy --fix  would solve a lot of linting errors, clippy is your friend
 
 use crypto_bigint::{CheckedSub, Integer, Random, U8192};
 use rand_core::OsRng;
@@ -9,7 +10,7 @@ pub enum MillerRabinError {
     #[error("This function only supports up to 1,024 bytes of input. Got {0}.")]
     TooManyBytes(usize),
     #[error("The Miller-Rabin test only allows testing numbers > 3. Found n <= 3")]
-    LowInteger(),
+    LowInteger(), // tk: don't need parens here
     #[error("The Miller-Rabin test only allows testing odd number. n is even.")]
     EvenInteger(),
     #[error("Cannot find random number with 2 <= n <= limit")]
@@ -18,6 +19,8 @@ pub enum MillerRabinError {
     MulModOperandTooHigh(),
     #[error("Exponentiation modulo p requires operand to be < p")]
     PowMulOperandTooHigh(),
+    #[error("misc")]
+    Misc,
 }
 
 /// Implementation of Miller-Rabbin primality test based on the description
@@ -26,11 +29,25 @@ pub enum MillerRabinError {
 /// Under the hood, we use crypto-bigint's U8192.
 /// Hence this function errors if `bytes` has more than 1,024 u8 elements.
 pub fn miller_rabin(bytes: Vec<u8>) -> Result<bool, MillerRabinError> {
-    const REQUIRED_BYTE_LENGTH_FOR_U8192: usize = 1024;
+    // tk: polite to take bytes by reference, don't take ownership:
+    // pub fn miller_rabin(bytes: &[u8]) -> Result<bool, MillerRabinError> {
+    // Also, it would be nice to return the witness if one is found, rather than just true, eg:
+    // pub fn miller_rabin(bytes: &[u8]) -> Result<Option<U8192>, MillerRabinError> {
+    const REQUIRED_BYTE_LENGTH_FOR_U8192: usize = 1024; // tk: by convention, consts live at top-level, if want lazy execution, use a lazy once cell static
 
     if bytes.len() > REQUIRED_BYTE_LENGTH_FOR_U8192 {
+        // tk: option to use ? operator:
+        // Err(MillerRabinError::TooManyBytes(bytes.len()))?;
         return Err(MillerRabinError::TooManyBytes(bytes.len()));
     }
+
+    // tk: option to not allocate vector to the heap here, array on the stack more efficient
+    // let arr: [u8; REQUIRED_BYTE_LENGTH_FOR_U8192] = {
+    //     let mut arr = [0u8; REQUIRED_BYTE_LENGTH_FOR_U8192];
+    //     arr[0..bytes.len()].copy_from_slice(&bytes);
+    //     arr
+    // };
+    // let n = U8192::from_be_slice(&arr);
 
     // Compute padding (`bytes` may or may not be shorter than 1,024 bytes)
     let mut padding = vec![];
@@ -52,18 +69,25 @@ pub fn miller_rabin(bytes: Vec<u8>) -> Result<bool, MillerRabinError> {
         return Err(MillerRabinError::EvenInteger());
     }
 
+    // tk: production code should comment why this is always safe to unwrap, or else return an error
     // Compute (s, t) such that s is odd and s.2^t = n-1
     let n_minus_one = n.checked_sub(&U8192::ONE).unwrap();
     let mut s = n_minus_one;
     let mut t = 0;
+    // tk: don't allocate two repeatedly
+    // let two = &U8192::from(2u8);
+    // tk: unhandled edge case, where n = 2.
     while bool::from(s.is_even()) {
         s = s.checked_div(&U8192::from(2u8)).unwrap();
+        // s = s.checked_div(&two).unwrap();
         t += 1;
     }
 
     let mut k = 0;
+    // tk: unnecessary copy
     let limit = n_minus_one;
     let bit_size = bit_len(&n);
+    // tk: 128 -> option to use a const for self-documenting var name
     while k < 128 {
         let a = get_random(bit_size, limit)?;
         k += 1;
@@ -87,6 +111,47 @@ pub fn miller_rabin(bytes: Vec<u8>) -> Result<bool, MillerRabinError> {
         }
     }
     Ok(true)
+
+    // // tk: imperative vs functional style depends, but when possible, functional is more commonly used, often more
+    // // readable, and easier to debug. Your algorithm doesn't actually use your iterator value, so is wasted CPU.
+    // // Admittedly, satisfying the type system with functional algorithms can be a bit tricky, can take longer to write.
+    // //
+    // // tk: functional equiv.
+    // // Get a (lazy) iterator of random values:
+    // // corresponds to v in above code
+    // let it_random = std::iter::repeat_with(|| {
+    //     get_random(bit_size, limit)
+    //         .ok()
+    //         .map(|rand| pow_mod(&rand, &s, &n).ok().unwrap())
+    //         .unwrap()
+    // });
+
+    // // compute (next random)^s mod n
+    // // try 128 candidates for n's primality
+    // let maybe_witness = it_random
+    //     .take(128)
+    //     // short circuits on first true value
+    //     .find(|v| {
+    //         // if v == 1, v is not a witness for n's compositeness
+    //         if v == &U8192::ONE {
+    //             return false;
+    //         }
+
+    //         let len_v = std::iter::successors(Some(*v), |&vv| mul_mod(&vv, &vv, &n).ok())
+    //             .take_while(|vv| vv != &n_minus_one)
+    //             .count();
+
+    //         // uncertain if this is correct, I'm too lazy to check
+    //         for i in 0..len_v {
+    //             if i == t - 1 {
+    //                 // will short circuit try_for_each
+    //                 return true;
+    //             }
+    //         }
+    //         false
+    //     });
+
+    // maybe_witness.map(|_| true).ok_or(MillerRabinError::Misc)
 }
 
 // Computes n^k (mod p)
@@ -144,6 +209,7 @@ fn mul_mod(n: &U8192, m: &U8192, p: &U8192) -> Result<U8192, MillerRabinError> {
 /// /!\ This function is easy to misuse /!\
 /// if `bit_size` is set way higher than log2(limit), randomly picking an integer
 /// of `bit_size` length is unlikely to be within (2, limit) -- it'll usually be way higher!
+// tk: It would be efficient to seed an RNG once, and pass it as a function argument.
 fn get_random(bit_size: usize, limit: U8192) -> Result<U8192, MillerRabinError> {
     const MAX_RANDOM_RETRIES: usize = 100;
     let mut retry_counter = 0;
