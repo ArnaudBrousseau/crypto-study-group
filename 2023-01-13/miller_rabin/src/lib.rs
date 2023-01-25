@@ -26,7 +26,7 @@ const MAX_RANDOM_RETRIES: usize = 100;
 /// This function expects bytes in Big-Endian order.
 /// Under the hood, we use crypto-bigint's U8192.
 /// Hence this function errors if `bytes` has more than 1,024 u8 elements.
-pub fn miller_rabin(bytes: Vec<u8>) -> Result<bool, MillerRabinError> {
+pub fn miller_rabin(bytes: &[u8]) -> Result<bool, MillerRabinError> {
     if bytes.len() > REQUIRED_BYTE_LENGTH_FOR_U8192 {
         Err(MillerRabinError::TooManyBytes(bytes.len()))?;
     }
@@ -34,7 +34,7 @@ pub fn miller_rabin(bytes: Vec<u8>) -> Result<bool, MillerRabinError> {
     // Pad `bytes`, which may or may not be shorter than 1,024 bytes
     let padded: [u8; REQUIRED_BYTE_LENGTH_FOR_U8192] = {
         let mut padded = [0u8; REQUIRED_BYTE_LENGTH_FOR_U8192];
-        padded[REQUIRED_BYTE_LENGTH_FOR_U8192 - bytes.len()..].copy_from_slice(&bytes);
+        padded[REQUIRED_BYTE_LENGTH_FOR_U8192 - bytes.len()..].copy_from_slice(bytes);
         padded
     };
 
@@ -53,7 +53,7 @@ pub fn miller_rabin(bytes: Vec<u8>) -> Result<bool, MillerRabinError> {
     let mut t = 0;
     let two = &U8192::from(2u8);
     while bool::from(s.is_even()) {
-        s = s.checked_div(&two).unwrap();
+        s = s.checked_div(two).unwrap();
         t += 1;
     }
 
@@ -180,10 +180,10 @@ mod test {
     #[test]
     fn test_miller_rabin() {
         // Low numbers
-        assert!(!miller_rabin(45u32.to_be_bytes().to_vec()).unwrap());
-        assert!(miller_rabin(547u32.to_be_bytes().to_vec()).unwrap());
-        assert!(miller_rabin(2357u32.to_be_bytes().to_vec()).unwrap());
-        assert!(miller_rabin(7919u32.to_be_bytes().to_vec()).unwrap());
+        assert!(!miller_rabin(&45u32.to_be_bytes()).unwrap());
+        assert!(miller_rabin(&547u32.to_be_bytes()).unwrap());
+        assert!(miller_rabin(&2357u32.to_be_bytes()).unwrap());
+        assert!(miller_rabin(&7919u32.to_be_bytes()).unwrap());
     }
 
     #[test]
@@ -195,45 +195,35 @@ mod test {
         let ed25519_prime =
             hex::decode("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed")
                 .unwrap();
-        assert!(miller_rabin(secp256k1_prime).unwrap());
-        assert!(miller_rabin(ed25519_prime).unwrap());
+        assert!(miller_rabin(&secp256k1_prime).unwrap());
+        assert!(miller_rabin(&ed25519_prime).unwrap());
     }
 
     #[test]
     fn test_miller_rabin_simple_errors() {
         assert_eq!(
-            miller_rabin(1u8.to_be_bytes().to_vec())
-                .unwrap_err()
-                .to_string(),
+            miller_rabin(&1u8.to_be_bytes()).unwrap_err().to_string(),
             "The Miller-Rabin test only allows testing numbers > 3. Found n <= 3".to_string(),
         );
         assert_eq!(
-            miller_rabin(2u8.to_be_bytes().to_vec())
-                .unwrap_err()
-                .to_string(),
+            miller_rabin(&2u8.to_be_bytes()).unwrap_err().to_string(),
             "The Miller-Rabin test only allows testing numbers > 3. Found n <= 3".to_string(),
         );
         assert_eq!(
-            miller_rabin(3u8.to_be_bytes().to_vec())
-                .unwrap_err()
-                .to_string(),
+            miller_rabin(&3u8.to_be_bytes()).unwrap_err().to_string(),
             "The Miller-Rabin test only allows testing numbers > 3. Found n <= 3".to_string(),
         );
         assert_eq!(
-            miller_rabin(4u8.to_be_bytes().to_vec())
-                .unwrap_err()
-                .to_string(),
+            miller_rabin(&4u8.to_be_bytes()).unwrap_err().to_string(),
             "The Miller-Rabin test only allows testing odd number. n is even.".to_string(),
         );
         assert_eq!(
-            miller_rabin(10u8.to_be_bytes().to_vec())
-                .unwrap_err()
-                .to_string(),
+            miller_rabin(&10u8.to_be_bytes()).unwrap_err().to_string(),
             "The Miller-Rabin test only allows testing odd number. n is even.".to_string(),
         );
         let big_ass_num = vec![1u8; 2000];
         assert_eq!(
-            miller_rabin(big_ass_num).unwrap_err().to_string(),
+            miller_rabin(&big_ass_num).unwrap_err().to_string(),
             "This function only supports up to 1,024 bytes of input. Got 2000.".to_string(),
         );
     }
