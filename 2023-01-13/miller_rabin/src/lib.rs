@@ -185,10 +185,10 @@ mod test {
     #[test]
     fn test_miller_rabin() {
         // Low numbers
-        assert_eq!(miller_rabin(45u32.to_be_bytes().to_vec()).unwrap(), false);
-        assert_eq!(miller_rabin(547u32.to_be_bytes().to_vec()).unwrap(), true);
-        assert_eq!(miller_rabin(2357u32.to_be_bytes().to_vec()).unwrap(), true);
-        assert_eq!(miller_rabin(7919u32.to_be_bytes().to_vec()).unwrap(), true);
+        assert!(!miller_rabin(45u32.to_be_bytes().to_vec()).unwrap());
+        assert!(miller_rabin(547u32.to_be_bytes().to_vec()).unwrap());
+        assert!(miller_rabin(2357u32.to_be_bytes().to_vec()).unwrap());
+        assert!(miller_rabin(7919u32.to_be_bytes().to_vec()).unwrap());
     }
 
     #[test]
@@ -200,8 +200,8 @@ mod test {
         let ed25519_prime =
             hex::decode("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed")
                 .unwrap();
-        assert_eq!(miller_rabin(secp256k1_prime).unwrap(), true);
-        assert_eq!(miller_rabin(ed25519_prime).unwrap(), true);
+        assert!(miller_rabin(secp256k1_prime).unwrap());
+        assert!(miller_rabin(ed25519_prime).unwrap());
     }
 
     #[test]
@@ -253,7 +253,7 @@ mod test {
         // These methods return a Choice that is a u8 under the covers
         // This `Choice` can then be converted to a bool.
         // Complex you say? That's the cost of abstractions to prevent side-channel attacks by default
-        assert_eq!(bool::from(c.0.is_none()), true)
+        assert!(bool::from(c.0.is_none()))
     }
 
     #[test]
