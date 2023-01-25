@@ -51,8 +51,9 @@ pub fn miller_rabin(bytes: Vec<u8>) -> Result<bool, MillerRabinError> {
     let n_minus_one = n.checked_sub(&U8192::ONE).unwrap();
     let mut s = n_minus_one;
     let mut t = 0;
+    let two = &U8192::from(2u8);
     while bool::from(s.is_even()) {
-        s = s.checked_div(&U8192::from(2u8)).unwrap();
+        s = s.checked_div(&two).unwrap();
         t += 1;
     }
 
