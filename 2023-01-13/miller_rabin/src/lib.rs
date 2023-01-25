@@ -9,15 +9,15 @@ pub enum MillerRabinError {
     #[error("This function only supports up to 1,024 bytes of input. Got {0}.")]
     TooManyBytes(usize),
     #[error("The Miller-Rabin test only allows testing numbers > 3. Found n <= 3")]
-    LowInteger(),
+    LowInteger,
     #[error("The Miller-Rabin test only allows testing odd number. n is even.")]
-    EvenInteger(),
+    EvenInteger,
     #[error("Cannot find random number with 2 <= n <= limit")]
-    CannotPickRandomBasis(),
+    CannotPickRandomBasis,
     #[error("Multiplication modulo p requires both operands to be < p")]
-    MulModOperandTooHigh(),
+    MulModOperandTooHigh,
     #[error("Exponentiation modulo p requires operand to be < p")]
-    PowMulOperandTooHigh(),
+    PowMulOperandTooHigh,
 }
 
 /// Implementation of Miller-Rabbin primality test based on the description
@@ -46,10 +46,10 @@ pub fn miller_rabin(bytes: Vec<u8>) -> Result<bool, MillerRabinError> {
 
     let n = U8192::from_be_slice(&sized_bytes);
     if n <= U8192::from(3u8) {
-        return Err(MillerRabinError::LowInteger());
+        return Err(MillerRabinError::LowInteger);
     }
     if bool::from(n.is_even()) {
-        return Err(MillerRabinError::EvenInteger());
+        return Err(MillerRabinError::EvenInteger);
     }
 
     // Compute (s, t) such that s is odd and s.2^t = n-1
@@ -93,7 +93,7 @@ pub fn miller_rabin(bytes: Vec<u8>) -> Result<bool, MillerRabinError> {
 // Errors when n >= p
 fn pow_mod(n: &U8192, k: &U8192, p: &U8192) -> Result<U8192, MillerRabinError> {
     if n >= p {
-        return Err(MillerRabinError::PowMulOperandTooHigh());
+        return Err(MillerRabinError::PowMulOperandTooHigh);
     }
     let mut res = U8192::ONE;
     // Series: n, n^2, n^4, n^8...n^(2^k)
@@ -116,7 +116,7 @@ fn pow_mod(n: &U8192, k: &U8192, p: &U8192) -> Result<U8192, MillerRabinError> {
 // Errors when n >= p
 fn mul_mod(n: &U8192, m: &U8192, p: &U8192) -> Result<U8192, MillerRabinError> {
     if n >= p {
-        return Err(MillerRabinError::MulModOperandTooHigh());
+        return Err(MillerRabinError::MulModOperandTooHigh);
     }
 
     let mut res = U8192::ZERO;
@@ -156,7 +156,7 @@ fn get_random(bit_size: usize, limit: U8192) -> Result<U8192, MillerRabinError> 
         }
         retry_counter += 1;
     }
-    Err(MillerRabinError::CannotPickRandomBasis())
+    Err(MillerRabinError::CannotPickRandomBasis)
 }
 
 // Returns the number of non-zero bits of a U8192.
