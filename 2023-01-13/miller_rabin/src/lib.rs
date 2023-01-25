@@ -1,5 +1,3 @@
-use std::vec;
-
 use crypto_bigint::{CheckedSub, Integer, Random, U8192};
 use rand_core::OsRng;
 use thiserror::Error;
@@ -33,19 +31,14 @@ pub fn miller_rabin(bytes: Vec<u8>) -> Result<bool, MillerRabinError> {
         Err(MillerRabinError::TooManyBytes(bytes.len()))?;
     }
 
-    // Compute padding (`bytes` may or may not be shorter than 1,024 bytes)
-    let mut padding = vec![];
-    if bytes.len() < REQUIRED_BYTE_LENGTH_FOR_U8192 {
-        let pad_len = REQUIRED_BYTE_LENGTH_FOR_U8192 - bytes.len();
-        padding = vec![0u8; pad_len];
-    }
+    // Pad `bytes`, which may or may not be shorter than 1,024 bytes
+    let padded: [u8; REQUIRED_BYTE_LENGTH_FOR_U8192] = {
+        let mut padded = [0u8; REQUIRED_BYTE_LENGTH_FOR_U8192];
+        padded[REQUIRED_BYTE_LENGTH_FOR_U8192-bytes.len()..].copy_from_slice(&bytes);
+        padded
+    };
 
-    // Container for our final bytes (exactly 1,024 bytes)
-    let mut sized_bytes = vec![];
-    sized_bytes.extend(padding);
-    sized_bytes.extend(bytes);
-
-    let n = U8192::from_be_slice(&sized_bytes);
+    let n = U8192::from_be_slice(&padded);
     if n <= U8192::from(3u8) {
         return Err(MillerRabinError::LowInteger);
     }
