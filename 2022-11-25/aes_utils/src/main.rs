@@ -34,11 +34,11 @@ fn main() {
         "53 9B 33 3B 39 70 6D 14 90 28 CF E1 D9 D4 A4 07".to_string(),
         "80 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01".to_string()
     );
-    println!("decrypted: {}", decrypted);
+    println!("decrypted: {decrypted}");
 
     let encrypted = encrypt(
         "29 6C 93 FD F4 99 AA EB 41 94 BA BC 2E 63 56 1D".to_string(), 
         "80 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01".to_string(),
     );
-    println!("encrypted: {}", encrypted);
+    println!("encrypted: {encrypted}");
 }
