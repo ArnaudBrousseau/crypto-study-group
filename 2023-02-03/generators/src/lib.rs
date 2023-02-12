@@ -2,7 +2,7 @@
 pub fn find_generator(prime: usize) -> usize {
     for i in 2..prime {
         if is_generator(prime, i) {
-            return i
+            return i;
         }
     }
     0
@@ -10,14 +10,14 @@ pub fn find_generator(prime: usize) -> usize {
 
 fn is_generator(prime: usize, g: usize) -> bool {
     let mut val = g;
-    for _ in 2..prime-1 {
-        val = val*g % prime;
+    for _ in 2..prime - 1 {
+        val = val * g % prime;
         if val == 1 {
-            return false
+            return false;
         }
     }
 
-    val*g % prime == 1
+    val * g % prime == 1
 }
 
 #[cfg(test)]
@@ -27,7 +27,7 @@ mod test {
     #[test]
     fn test_is_generator() {
         assert!(is_generator(11, 2));
-        
+
         assert!(is_generator(17, 3));
         assert!(!is_generator(17, 2));
 
@@ -68,7 +68,7 @@ mod test {
         // Answers to the homework!
         assert_eq!(find_generator(1009), 11);
         assert_eq!(find_generator(2357), 2);
-        
+
         // What happens if we don't pass a prime? We simply 0
         assert_eq!(find_generator(15), 0);
         assert_eq!(find_generator(100), 0);
