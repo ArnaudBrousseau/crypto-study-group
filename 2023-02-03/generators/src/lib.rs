@@ -5,7 +5,7 @@ pub fn find_generator(prime: usize) -> usize {
             return i
         }
     }
-    return 0
+    0
 }
 
 fn is_generator(prime: usize, g: usize) -> bool {
