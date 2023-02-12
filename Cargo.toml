@@ -13,4 +13,5 @@ members = [
   "2023-01-13/is_prime",
   "2023-01-13/eea",
   "2023-01-13/miller_rabin",
+  "2023-02-03/generators",
 ]

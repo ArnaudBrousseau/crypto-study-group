@@ -59,9 +59,27 @@ $=> d = 1$ and $ka.u + kb.v=1$ [because $d>0$ and $d\in\Z$]
 $=> Contradicts (3)!$   
 $=> GCD(a, b) = 1$  $\space \square$
 
-* [ ] **Suppose $g^a \equiv 1$ (mod m), and $g^b \equiv 1$ (mod m). Prove that $g^{gcd(a,b)} \equiv 1$ (mod m)**
+* [x] **Suppose $g^a \equiv 1$ (mod m), and $g^b \equiv 1$ (mod m). Prove that $g^{gcd(a,b)} \equiv 1$ (mod m)**
 
-This isn't stated explicitly here, but I'm assuming `g` is a generator of the group $\Z/m\Z$? Maybe?
+The Extended Euclidian Algorithm gives:
+
+$gcd(a, b) = au + bv$
+
+Hence:
+
+$ g^{gcd(a,b)} = g^{au + bv} = g^{au} * g^{bv} = (g^a)^u * (g^b)^v$
+
+Now, reducing modulo m:
+
+$ (g^a)^u * (g^b)^v \equiv (1)^u*(1)^v \equiv 1 \space \square$
+
+(props to `dreadloaf` on Discord for this proof!)
+
+----
+
+For an alternative proof that I do not fully grasp, see the [wiki solution](https://uncloak.org/courses/rust+cryptography+engineering/course-2023-02-03+Session+10+Solutions). Discussed below.
+
+This isn't stated explicitly here, but assuming `g` is a generator of the group $\Z/m\Z$? Maybe?
 
 By Euler's Theorem: $g^{\phi(n)} \equiv 1$ (mod n) **if g and m are co-prime** (again: fair assumption? Maybe?)
 
@@ -75,4 +93,11 @@ Hence $g^{gcd(a,b)} \equiv g^{k*\phi(m)} \equiv (g^{\phi(m)})^k \equiv 1^k = 1 $
 
 TODO: prove that $g^{\phi(m)} \equiv 1$? Where does this come from? (I think this because g is a generator, and $\phi(m)$ is the order of the group)
 
-* [ ] **Using a program, obtain a generator for the group of integers in $\Z/1009\Z$ and $\Z/2357\Z$. Both values are prime. What method did you use to check if the candidate was a generator?**
+* [x] **Using a program, obtain a generator for the group of integers in $\Z/1009\Z$ and $\Z/2357\Z$. Both values are prime. What method did you use to check if the candidate was a generator?**
+
+See [generators](./generators/). Answers:
+```
+Generator for Z/1009Z: 11
+Generator for Z/2357Z: 2
+```
+This program is sub-optimal: it actually checked the full set of multiplications. Starting with a candidate g, and repeatedly multiplying (n times). If the result is 1 before n-1 times, this isn't a generator. If the result isn't 1 after n time, this isn't a generator either. The result has to be 1 after n-1 times, and not before.
