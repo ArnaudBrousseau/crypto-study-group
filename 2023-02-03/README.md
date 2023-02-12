@@ -100,4 +100,5 @@ See [generators](./generators/). Answers:
 Generator for Z/1009Z: 11
 Generator for Z/2357Z: 2
 ```
+
 This program is sub-optimal: it actually checked the full set of multiplications. Starting with a candidate g, and repeatedly multiplying (n times). If the result is 1 before n-1 times, this isn't a generator. If the result isn't 1 after n time, this isn't a generator either. The result has to be 1 after n-1 times, and not before.
