@@ -6,6 +6,7 @@
         "CSPRNG",
         "dalek",
         "Diffie",
+        "Gamal",
         "keygen",
         "Keypair",
         "Kohno",
