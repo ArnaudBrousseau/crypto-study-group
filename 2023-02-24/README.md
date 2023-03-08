@@ -3,8 +3,8 @@ The notes & assigned homework are [here](https://uncloak.org/courses/rust+crypto
 
 ## Assigned reading
 
-* [ ] Sections 5.1 through 5.5 (basic facts about elliptic curves)
-* [ ] Section 5.8 on bilinear pairings
+* [x] Sections 5.1 through 5.5 (basic facts about elliptic curves)
+* [x] Section 5.8 on bilinear pairings
 
 ## Homework
 
