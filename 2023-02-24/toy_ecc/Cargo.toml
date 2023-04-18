@@ -1,0 +1,10 @@
+[package]
+name = "toy_ecc"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+thiserror = { version = "1.0.38" }
+num-bigint = { version = "0.4.3" }
+rand_core = { version = "0.6.4" }
+hex = { version = "0.4.3" }

@@ -10,6 +10,7 @@
         "keygen",
         "Keypair",
         "Kohno",
+        "modpow",
         "PKCS",
         "primality",
         "PRNG",
