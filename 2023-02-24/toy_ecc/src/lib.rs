@@ -1,19 +1,19 @@
 use std::fmt;
 use std::ops;
 
+use crate::element::Element;
+use crate::util::buint;
+use num_bigint::BigUint;
 use num_bigint::ToBigInt;
 use num_bigint::ToBigUint;
 use thiserror::Error;
-use num_bigint::{BigUint};
 use util::bint;
-use crate::element::Element;
-use crate::util::buint;
 
 // `Element` is meant to be part of this library's public interface,
 // but the util and eea modules aren't. They're internal helpers.
+mod eea;
 pub mod element;
 mod util;
-mod eea;
 
 #[derive(Error, Debug)]
 pub enum ECCError {
@@ -47,15 +47,9 @@ impl fmt::Display for Curve<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "<Curve {}", self.name)?;
         match self.form() {
-            CurveForm::Montgomery => {
-                write!(f, " (Montgomery):")?
-            }
-            CurveForm::Weierstrass => {
-                write!(f, " (Weierstrass):")?
-            }
-            CurveForm::Unknown => {
-                write!(f, ":")?
-            }
+            CurveForm::Montgomery => write!(f, " (Montgomery):")?,
+            CurveForm::Weierstrass => write!(f, " (Weierstrass):")?,
+            CurveForm::Unknown => write!(f, ":")?,
         }
         write!(f, " y^2 = x^3")?;
         if self.a2.value != buint(0) {
@@ -72,9 +66,15 @@ impl fmt::Display for Curve<'_> {
 }
 
 impl Curve<'_> {
-    pub fn new<BUINT: ToBigUint, BINT: ToBigInt>(name: &str, a2: BINT, a4: BINT, a6: BINT, p: BUINT) -> Curve {
+    pub fn new<BUINT: ToBigUint, BINT: ToBigInt>(
+        name: &str,
+        a2: BINT,
+        a4: BINT,
+        a6: BINT,
+        p: BUINT,
+    ) -> Curve {
         let prime = p.to_biguint().unwrap();
-        
+
         Curve {
             name,
             p: prime.clone(),
@@ -102,9 +102,10 @@ impl Curve<'_> {
         let b4 = self.element(2) * self.a4.clone();
         let b6 = self.element(4) * self.a6.clone();
         let b8 = b2.clone() * self.a6.clone() - self.a4.pow(2);
-        
-        let delta = - b8*b2.pow(2) - self.element(8)*b4.pow(3) - self.element(27)*b6.pow(2) + self.element(9)*b2*b4*b6;
-        
+
+        let delta = -b8 * b2.pow(2) - self.element(8) * b4.pow(3) - self.element(27) * b6.pow(2)
+            + self.element(9) * b2 * b4 * b6;
+
         delta.value
     }
 
@@ -118,7 +119,8 @@ impl Curve<'_> {
         } else {
             let x = point.x;
             let y = point.y;
-            y.pow(2) == (x.pow(3) + self.a2.clone()*x.pow(2) + self.a4.clone()*x + self.a6.clone())
+            y.pow(2)
+                == (x.pow(3) + self.a2.clone() * x.pow(2) + self.a4.clone() * x + self.a6.clone())
         }
     }
 
@@ -161,7 +163,11 @@ impl fmt::Display for Point<'_> {
         } else {
             let x = self.x.clone();
             let y = self.y.clone();
-            write!(f, "<Point on curve {}: x={}, y={}>", self.curve.name, x.value, y.value)
+            write!(
+                f,
+                "<Point on curve {}: x={}, y={}>",
+                self.curve.name, x.value, y.value
+            )
         }
     }
 }
@@ -191,11 +197,11 @@ impl ops::Add for Point<'_> {
 
         // O + X = X
         if self.is_at_infinity() && !other.is_at_infinity() {
-            return other
+            return other;
         }
         // X + O = X
         if !self.is_at_infinity() && other.is_at_infinity() {
-            return self
+            return self;
         }
         // O + O = O
         if self.is_at_infinity() && other.is_at_infinity() {
@@ -216,18 +222,16 @@ impl ops::Add for Point<'_> {
 
         let lambda = if self == other {
             // Compute Lambda for doubling
-            (self.curve.element(3)*x.pow(2) + self.curve.clone().a4)
-            / (Element::new(2, modulus) * y.clone())
+            (self.curve.element(3) * x.pow(2) + self.curve.clone().a4)
+                / (Element::new(2, modulus) * y.clone())
         } else {
             // Standard formula, when the two points are distinct
-            (other_y - y.clone())
-            / (other_x.clone() - x.clone())
+            (other_y - y.clone()) / (other_x.clone() - x.clone())
         };
 
         let result_x = lambda.pow(2) - x.clone() - other_x;
         let result_y = lambda * (x - result_x.clone()) - y;
 
-           
         // X + Y (both regular points)
         Point {
             x: result_x,
@@ -279,14 +283,13 @@ impl Point<'_> {
     }
 }
 
-
 #[cfg(test)]
 mod test {
 
-    use num_bigint::BigUint;
+    use crate::util::{bint, buint};
     use crate::Curve;
-    use crate::util::{buint, bint};
-    
+    use num_bigint::BigUint;
+
     fn curve_secp256k1() -> Curve<'static> {
         let p_secp256 = bint(2).pow(256) - bint(2).pow(32) - bint(977);
         Curve::new("secp256k1", 0, 0, 7, p_secp256)
@@ -304,19 +307,30 @@ mod test {
         let montgomery = Curve::new("MyCurve", 44, 0, 46, 89);
         let weierstrass = Curve::new("MyCurve", 0, 5, 42, 89);
         let unknown = Curve::new("MyCurve", 5, 7, 42, 89);
-        let both =  Curve::new("MyCurve", 0, 0, 42, 89);
+        let both = Curve::new("MyCurve", 0, 0, 42, 89);
 
-        assert_eq!(format!("{montgomery}"), "<Curve MyCurve (Montgomery): y^2 = x^3 + 44x^2 + 46 (mod 89)>");
-        assert_eq!(format!("{weierstrass}"), "<Curve MyCurve (Weierstrass): y^2 = x^3 + 5x + 42 (mod 89)>");
-        assert_eq!(format!("{unknown}"), "<Curve MyCurve: y^2 = x^3 + 5x^2 + 7x + 42 (mod 89)>");
-        assert_eq!(format!("{both}"), "<Curve MyCurve: y^2 = x^3 + 42 (mod 89)>");
+        assert_eq!(
+            format!("{montgomery}"),
+            "<Curve MyCurve (Montgomery): y^2 = x^3 + 44x^2 + 46 (mod 89)>"
+        );
+        assert_eq!(
+            format!("{weierstrass}"),
+            "<Curve MyCurve (Weierstrass): y^2 = x^3 + 5x + 42 (mod 89)>"
+        );
+        assert_eq!(
+            format!("{unknown}"),
+            "<Curve MyCurve: y^2 = x^3 + 5x^2 + 7x + 42 (mod 89)>"
+        );
+        assert_eq!(
+            format!("{both}"),
+            "<Curve MyCurve: y^2 = x^3 + 42 (mod 89)>"
+        );
     }
 
     #[test]
     fn test_point_display() {
         let curve = curve_secp256k1();
         let p = curve.point(buint(1), buint(2));
-
 
         let formatted = format!("{p}");
         assert_eq!(formatted, "<Point on curve secp256k1: x=1, y=2>");
@@ -339,7 +353,11 @@ mod test {
 
         let secp = curve_secp256k1();
         // See https://neuromancer.sk/std/secg/secp256k1
-        let secp256k1_discriminant = BigUint::parse_bytes(b"115792089237316195423570985008687907853269984665640564039457584007908834650495", 10).unwrap();
+        let secp256k1_discriminant = BigUint::parse_bytes(
+            b"115792089237316195423570985008687907853269984665640564039457584007908834650495",
+            10,
+        )
+        .unwrap();
         assert_eq!(true, secp.is_smooth());
         assert_eq!(secp256k1_discriminant, secp.discriminant());
     }
@@ -401,11 +419,19 @@ mod test {
         println!("{}", sum);
         assert_eq!(sum.is_at_infinity(), true);
     }
-    
+
     #[test]
     fn test_point_addition_on_secp256k1() {
-        let x  = BigUint::parse_bytes(b"79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798", 16).unwrap();
-        let y  = BigUint::parse_bytes(b"483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8", 16).unwrap();
+        let x = BigUint::parse_bytes(
+            b"79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
+            16,
+        )
+        .unwrap();
+        let y = BigUint::parse_bytes(
+            b"483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8",
+            16,
+        )
+        .unwrap();
         let curve = curve_secp256k1();
         let g = curve.point(x, y);
 
@@ -413,8 +439,16 @@ mod test {
 
         // These test values were obtained by referencing another secp256k1 / Bitcoin library: my own, written in JS a while back, specifically for Bitcoin.
         // See https://github.com/ArnaudBrousseau/arnaudbrousseau.com/blob/master/static/labs/keys.deconstructed/keys.deconstructed.js
-        let expected_x = BigUint::parse_bytes(b"C6047F9441ED7D6D3045406E95C07CD85C778E4B8CEF3CA7ABAC09B95C709EE5", 16).unwrap();
-        let expected_y = BigUint::parse_bytes(b"1AE168FEA63DC339A3C58419466CEAEEF7F632653266D0E1236431A950CFE52A", 16).unwrap();
+        let expected_x = BigUint::parse_bytes(
+            b"C6047F9441ED7D6D3045406E95C07CD85C778E4B8CEF3CA7ABAC09B95C709EE5",
+            16,
+        )
+        .unwrap();
+        let expected_y = BigUint::parse_bytes(
+            b"1AE168FEA63DC339A3C58419466CEAEEF7F632653266D0E1236431A950CFE52A",
+            16,
+        )
+        .unwrap();
 
         // ----/!\ DIGRESSION /!\------------------------------------------------------------------------------------------------------------------------------
         // Another cool proof that these expected values are correct: let's derive the Bitcoin address for it!
@@ -443,7 +477,7 @@ mod test {
         // Finally, we go to http://lenschulwitz.com/base58 to base58 encode `00d6c8e828c1eca1bba065e1b83e1dc2a36e387a4274d4b4aa`
         // ...and we find that the result is `1LagHJk2FyCV2VzrNHVqg3gYG4TSYwDV4m`
         // ...low and behold, that's also the uncompressed address indicated on https://keys.lol/bitcoin/1 on the second row (seed 2!)
-        // 
+        //
         // Hence proving the correctness of these expected values: we just showed that they yield the right BTC address!
         // --------------------------------------------------------------------------------------------------------------------------------------------------
 

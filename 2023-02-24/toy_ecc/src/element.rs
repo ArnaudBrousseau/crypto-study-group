@@ -1,10 +1,10 @@
 use std::fmt::Display;
 use std::ops;
 
-use num_bigint::{BigUint, ToBigUint, ToBigInt};
+use num_bigint::{BigUint, ToBigInt, ToBigUint};
 
 use crate::eea;
-use crate::util::{buint, bint};
+use crate::util::{bint, buint};
 
 // Type to wrap BigUint and do math in a finite field
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -20,7 +20,7 @@ impl Element {
     pub fn new<BINT: ToBigInt, BUINT: ToBigUint>(value: BINT, modulus: BUINT) -> Self {
         let m = buint(modulus);
         let v = bint(value);
-        
+
         let val = if v < bint(0) {
             buint(bint(m.clone()) + v)
         } else if v >= bint(m.clone()) {
@@ -29,7 +29,7 @@ impl Element {
             buint(v)
         };
 
-        Self{
+        Self {
             value: val,
             modulus: m,
         }
@@ -70,7 +70,7 @@ impl ops::Add for Element {
         if self.modulus != other.modulus {
             panic!("Cannot add elements with different modulus");
         }
-        
+
         Self {
             value: (self.value + other.value) % self.modulus.clone(),
             modulus: self.modulus,
@@ -105,7 +105,7 @@ impl ops::Mul for Element {
         if self.modulus != other.modulus {
             panic!("Cannot multiply elements with different modulus");
         }
-        
+
         Self {
             value: (self.value * other.value) % self.modulus.clone(),
             modulus: self.modulus,
@@ -121,10 +121,13 @@ impl ops::Div for Element {
         if res.is_err() {
             panic!("error while computing EEA: {res:?}");
         }
-        
+
         let eea_out = res.unwrap();
         if eea_out.gcd != buint(1) {
-            panic!("cannot inverse because GCD({}, {}) != 1", &other, &other.modulus)
+            panic!(
+                "cannot inverse because GCD({}, {}) != 1",
+                &other, &other.modulus
+            )
         }
 
         // EEA gives: other*u + modulus*v = 1.
@@ -135,7 +138,7 @@ impl ops::Div for Element {
         } else {
             buint(eea_out.u) % self.modulus.clone()
         };
-        
+
         Self {
             value: (self.value * other_inv) % self.modulus.clone(),
             modulus: self.modulus,
@@ -145,8 +148,8 @@ impl ops::Div for Element {
 
 #[cfg(test)]
 mod test {
-    use crate::{element::Element};
-    
+    use crate::element::Element;
+
     #[test]
     fn test_display_element() {
         let a = Element::new(5, 13);
@@ -185,7 +188,7 @@ mod test {
     fn test_multiply_elements() {
         let a = Element::new(5, 13);
         let b = Element::new(6, 13);
-        assert_eq!(a*b, Element::new(4, 13));
+        assert_eq!(a * b, Element::new(4, 13));
     }
 
     #[test]
@@ -200,6 +203,6 @@ mod test {
     fn test_divide_elements() {
         let a = Element::new(5, 13);
         let b = Element::new(9, 13);
-        assert_eq!(a/b, Element::new(2, 13));
+        assert_eq!(a / b, Element::new(2, 13));
     }
 }

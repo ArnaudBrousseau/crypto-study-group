@@ -1,7 +1,7 @@
-use num_bigint::{BigUint, BigInt};
+use num_bigint::{BigInt, BigUint};
 
+use crate::util::{bint, buint};
 use crate::ECCError;
-use crate::util::{buint, bint};
 
 #[derive(Debug)]
 pub struct EEAOutput {
@@ -16,7 +16,7 @@ pub struct EEAOutput {
 ///     (Bezout identity)
 pub fn eea(a: BigUint, b: BigUint) -> Result<EEAOutput, ECCError> {
     if a == buint(0) || b == buint(0) {
-        return Err(ECCError::EEAOperandIsZero)
+        return Err(ECCError::EEAOperandIsZero);
     }
 
     if a > b {
@@ -28,16 +28,30 @@ pub fn eea(a: BigUint, b: BigUint) -> Result<EEAOutput, ECCError> {
 
 /// Recursive inner function
 /// For each round, a < b, and we iterate on a, b, ua/va, and ub/vb
-fn compute_eea(a: BigUint, b: BigUint, ua: BigInt, va: BigInt, ub: BigInt, vb: BigInt) -> EEAOutput {
+fn compute_eea(
+    a: BigUint,
+    b: BigUint,
+    ua: BigInt,
+    va: BigInt,
+    ub: BigInt,
+    vb: BigInt,
+) -> EEAOutput {
     if a == buint(0) {
-        return EEAOutput{
-            gcd:b,
-            u:ub,
-            v:vb,
+        return EEAOutput {
+            gcd: b,
+            u: ub,
+            v: vb,
         };
     }
     let quotient = bint(b.clone() / a.clone());
     let remainder = bint(b) - quotient.clone() * bint(a.clone());
 
-    compute_eea(buint(remainder), a, ub - quotient.clone() * ua.clone(), vb - quotient * va.clone(), ua, va)
+    compute_eea(
+        buint(remainder),
+        a,
+        ub - quotient.clone() * ua.clone(),
+        vb - quotient * va.clone(),
+        ua,
+        va,
+    )
 }
