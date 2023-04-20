@@ -1077,7 +1077,6 @@ dependencies = [
 name = "toy_ecc"
 version = "0.1.0"
 dependencies = [
- "hex",
  "num-bigint",
  "rand_core 0.6.4",
  "thiserror",

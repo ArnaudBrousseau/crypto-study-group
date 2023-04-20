@@ -34,11 +34,16 @@ impl Element {
             modulus: m,
         }
     }
+
     pub fn pow(&self, exponent: usize) -> Self {
         Self {
             value: self.value.modpow(&buint(exponent), &self.modulus),
             modulus: self.modulus.clone(),
         }
+    }
+
+    pub fn is_zero(&self) -> bool {
+        self.value == buint(0)
     }
 }
 
@@ -153,6 +158,12 @@ mod test {
         let a = Element::new(5, 13);
         let b = Element::new(10, 13);
         assert_eq!(a + b, Element::new(2, 13));
+    }
+
+    #[test]
+    fn test_is_zero() {
+        assert_eq!(Element::new(0, 13).is_zero(), true);
+        assert_eq!((Element::new(4, 5) + Element::new(1, 5)).is_zero(), true);
     }
 
     #[test]

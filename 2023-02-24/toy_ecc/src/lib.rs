@@ -5,16 +5,24 @@ use num_bigint::ToBigInt;
 use num_bigint::ToBigUint;
 use thiserror::Error;
 use num_bigint::{BigUint};
+use util::bint;
 use crate::element::Element;
 use crate::util::buint;
-mod element;
+
+// `Element` is meant to be part of this library's public interface,
+// but the util and eea modules aren't. They're internal helpers.
+pub mod element;
+mod util;
 mod eea;
-pub mod util;
 
 #[derive(Error, Debug)]
 pub enum ECCError {
     #[error("Cannot operate on two different curves")]
     CurveMismatch,
+    #[error("Cannot create a Point with field elements on different fields")]
+    PointCoordinateFieldMismatch,
+    #[error("Cannot compute modulus for point at infinity")]
+    NoModulusForPointAtInfinity,
     #[error("Cannot compute EEA because one or more operand is zero")]
     EEAOperandIsZero,
 }
@@ -27,7 +35,7 @@ pub enum CurveForm {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-struct Curve<'a> {
+pub struct Curve<'a> {
     name: &'a str,
     p: BigUint,
     a2: Element,
@@ -88,7 +96,7 @@ impl Curve<'_> {
         }
     }
 
-    fn discriminant(&self) -> BigUint {
+    pub fn discriminant(&self) -> BigUint {
         // See https://mathworld.wolfram.com/EllipticDiscriminant.html for this formula
         let b2 = self.element(4) * self.a2.clone();
         let b4 = self.element(2) * self.a4.clone();
@@ -100,62 +108,60 @@ impl Curve<'_> {
         delta.value
     }
 
-    fn is_smooth(&self) -> bool {
+    pub fn is_smooth(&self) -> bool {
         self.discriminant() != buint(0)
     }
 
-    fn contains(&self, point: Point) -> bool {
-        let x = self.element(point.x);
-        let y = self.element(point.y);
-
-        y.pow(2) == (x.pow(3) + self.a2.clone()*x.pow(2) + self.a4.clone()*x + self.a6.clone())
-    }
-
-    fn element<T: ToBigUint>(&self, value: T) -> Element {
-        Element {
-            value: buint(value),
-            modulus: self.p.clone(),
+    pub fn contains(&self, point: Point) -> bool {
+        if point.is_at_infinity() {
+            true
+        } else {
+            let x = point.x;
+            let y = point.y;
+            y.pow(2) == (x.pow(3) + self.a2.clone()*x.pow(2) + self.a4.clone()*x + self.a6.clone())
         }
     }
 
-    fn zero(&self) -> Element {
-        Element { value: buint(0), modulus: self.p.clone() }
+    pub fn element<T: ToBigInt>(&self, value: T) -> Element {
+        Element::new(value, self.p.clone())
     }
 
-    fn point_at_infinity(&self) -> Point<'_> {
+    pub fn point<T: ToBigInt>(&self, x: T, y: T) -> Point {
         Point {
-            x: buint(0),
-            y: buint(0),
-            r#type: PointType::Infinite,
-            curve: self.clone(),
+            x: Element::new(bint(x), self.p.clone()),
+            y: Element::new(bint(y), self.p.clone()),
+            curve: self,
         }
+    }
+
+    pub fn point_at_infinity(&self) -> Point {
+        Point {
+            x: Element::new(0, self.p.clone()),
+            y: Element::new(0, self.p.clone()),
+            curve: self,
+        }
+    }
+
+    pub fn zero(&self) -> Element {
+        Element::new(0, self.p.clone())
     }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum PointType {
-    Regular,
-    Infinite,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-struct Point<'a> {
-    x: BigUint,
-    y: BigUint,
-    r#type: PointType,
-    curve: Curve<'a>,
+pub struct Point<'p> {
+    x: Element,
+    y: Element,
+    curve: &'p Curve<'p>,
 }
 
 impl fmt::Display for Point<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "<Point Object on curve {}: ", self.curve.name)?;
-        match self.r#type {
-            PointType::Regular => {
-                write!(f, "Regular (x: {}, y: {})>", self.x, self.y)
-            }
-            PointType::Infinite => {
-                write!(f, "Point at Infinity>")
-            }
+        if self.is_at_infinity() {
+            write!(f, "<Point at Infinity>")
+        } else {
+            let x = self.x.clone();
+            let y = self.y.clone();
+            write!(f, "<Point on curve {}: x={}, y={}>", self.curve.name, x.value, y.value)
         }
     }
 }
@@ -163,12 +169,14 @@ impl fmt::Display for Point<'_> {
 impl ops::Neg for Point<'_> {
     type Output = Self;
     fn neg(self) -> Self::Output {
-
-        Self {
-            x: self.x,
-            y: (self.curve.p.clone() - self.y) % self.curve.p.clone(),
-            r#type: self.r#type,
-            curve: self.curve,
+        if self.is_at_infinity() {
+            self
+        } else {
+            Self {
+                x: self.x,
+                y: -self.y,
+                curve: self.curve,
+            }
         }
     }
 }
@@ -182,63 +190,76 @@ impl ops::Add for Point<'_> {
         }
 
         // O + X = X
-        if self.r#type == PointType::Infinite && other.r#type == PointType::Regular {
+        if self.is_at_infinity() && !other.is_at_infinity() {
             return other
         }
         // X + O = X
-        if self.r#type == PointType::Regular && other.r#type == PointType::Infinite {
+        if !self.is_at_infinity() && other.is_at_infinity() {
             return self
         }
         // O + O = O
-        if self.r#type == PointType::Infinite && other.r#type == PointType::Infinite {
-            return Self {
-                x: buint(0),
-                y: buint(0),
-                r#type: PointType::Infinite,
-                curve: self.curve,
-            }
+        if self.is_at_infinity() && other.is_at_infinity() {
+            return self.curve.point_at_infinity();
         }
 
+        // We're now in the regular case: two normal points!
+        let x = self.x.clone();
+        let y = self.y.clone();
+        let other_x = other.x.clone();
+        let other_y = other.y.clone();
+        let modulus = self.modulus().unwrap();
+
         // P + -P = O
-        if self.x == other.x && (self.y.clone() + other.y.clone()) % self.curve.clone().p == buint(0) {
-            return Self {
-                x: buint(0),
-                y: buint(0),
-                r#type: PointType::Infinite,
-                curve: self.curve,
-            }
+        if x == other_x && (y.clone() + other_y.clone()).is_zero() {
+            return self.curve.point_at_infinity();
         }
 
         let lambda = if self == other {
             // Compute Lambda for doubling
-            (self.curve.element(3)*self.curve.element(self.x.clone()).pow(2) + self.curve.a4.clone())
-            / (self.curve.element(2) * self.curve.element(self.y.clone()))
+            (self.curve.element(3)*x.pow(2) + self.curve.clone().a4)
+            / (Element::new(2, modulus) * y.clone())
         } else {
             // Standard formula, when the two points are distinct
-            (self.curve.element(other.y.clone()) - self.curve.element(self.y.clone()))
-            / (self.curve.element(other.x.clone()) - self.curve.element(self.x.clone()))
+            (other_y - y.clone())
+            / (other_x.clone() - x.clone())
         };
 
-        let result_x = lambda.pow(2) - self.curve.element(self.x.clone()) - self.curve.element(other.x);
-        let result_y = lambda * (self.curve.element(self.x) - result_x.clone()) - self.curve.element(self.y);
+        let result_x = lambda.pow(2) - x.clone() - other_x;
+        let result_y = lambda * (x - result_x.clone()) - y;
 
            
         // X + Y (both regular points)
-        Self {
-            x: result_x.value,
-            y: result_y.value,
-            r#type: PointType::Regular,
+        Point {
+            x: result_x,
+            y: result_y,
             curve: self.curve,
         }
     }
 }
 
 impl Point<'_> {
+    pub fn is_at_infinity(&self) -> bool {
+        self.x.is_zero() && self.y.is_zero()
+    }
+
+    pub fn modulus(&self) -> Result<BigUint, ECCError> {
+        if self.is_at_infinity() {
+            return Err(ECCError::NoModulusForPointAtInfinity);
+        }
+        let x = self.x.clone();
+        let y = self.y.clone();
+
+        if x.modulus != y.modulus {
+            return Err(ECCError::PointCoordinateFieldMismatch);
+        }
+        Ok(x.modulus)
+    }
+
     // Point multiplication, implemented with the double-and-add technique
     // (deviates from the OG toy_ecc implementation, which did this with non-adjacent representation)
-    fn mul(&self, scalar: BigUint) -> Point<'_> {
+    pub fn mul(&self, scalar: BigUint) -> Point {
         if scalar == buint(0) {
-            return self.curve.point_at_infinity()
+            return self.curve.point_at_infinity();
         }
 
         let mut result = self.curve.point_at_infinity();
@@ -262,8 +283,8 @@ impl Point<'_> {
 #[cfg(test)]
 mod test {
 
-    use num_bigint::{BigUint};
-    use crate::{Curve, Point, PointType};
+    use num_bigint::BigUint;
+    use crate::Curve;
     use crate::util::{buint, bint};
     
     fn curve_secp256k1() -> Curve<'static> {
@@ -276,17 +297,6 @@ mod test {
     // Y^2 =X^3+3X+8 on F13
     fn curve_trivial() -> Curve<'static> {
         Curve::new("trivial curve", 0, 3, 8, 13)
-    }
-
-    fn curve_secp256k1_generator() -> Point<'static> {
-        let x  = BigUint::parse_bytes(b"79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798", 16).unwrap();
-        let y  = BigUint::parse_bytes(b"483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8", 16).unwrap();
-        let curve = curve_secp256k1();
-        Point {
-            x, y,
-            r#type: crate::PointType::Regular,
-            curve: curve,
-        }
     }
 
     #[test]
@@ -304,15 +314,12 @@ mod test {
 
     #[test]
     fn test_point_display() {
-        let p = Point {
-            x: buint(1),
-            y: buint(2),
-            r#type: crate::PointType::Regular,
-            curve:  curve_secp256k1(),
-        };
+        let curve = curve_secp256k1();
+        let p = curve.point(buint(1), buint(2));
+
 
         let formatted = format!("{p}");
-        assert_eq!(formatted, "<Point Object on curve secp256k1: Regular (x: 1, y: 2)>");
+        assert_eq!(formatted, "<Point on curve secp256k1: x=1, y=2>");
     }
 
     #[test]
@@ -339,94 +346,70 @@ mod test {
 
     #[test]
     fn test_negate_point() {
-        let p = Point {
-            x: buint(1),
-            y: buint(2),
-            r#type: crate::PointType::Regular,
-            curve:  Curve::new("My curve", 7, 0, 1, 17),
-        };
+        let curve = Curve::new("My curve", 7, 0, 1, 17);
+        let p = curve.point(1, 2);
 
         let minus_p = -p;
 
-        assert_eq!(minus_p.curve.name, "My curve");
-        assert_eq!(minus_p.x, buint(1));
-        assert_eq!(minus_p.y, buint(15));
+        assert_eq!(minus_p.x.value, buint(1));
+        assert_eq!(minus_p.y.value, buint(15));
     }
 
     #[test]
-    fn test_contains() {
-        let p = Point {
-            x: buint(2),
-            y: buint(3),
-            r#type: crate::PointType::Regular,
-            curve:  curve_trivial(),
-        };
+    fn test_contains_point_at_infinity() {
+        let c = curve_trivial();
+        let inf = c.point_at_infinity();
+        assert_eq!(true, c.contains(inf));
+    }
+
+    #[test]
+    fn test_contains_regular_points() {
+        let c = curve_trivial();
+        let p = c.point(2, 3);
 
         let c = curve_trivial();
         assert_eq!(true, c.contains(p));
 
-        let q = Point {
-            x: buint(2),
-            y: buint(8),
-            r#type: crate::PointType::Regular,
-            curve:  curve_trivial(),
-        };
-        let c = curve_trivial();
+        let q = c.point(2, 8);
         assert_eq!(false, c.contains(q));
     }
 
     #[test]
     // Test cases taken from page 289 of ItMC book (addition table)
     fn test_point_addition_on_trivial_curve() {
-        let p = Point {
-            x: buint(2),
-            y: buint(3),
-            r#type: crate::PointType::Regular,
-            curve:  curve_trivial(),
-        };
-
-        let q = Point {
-            x: buint(9),
-            y: buint(6),
-            r#type: crate::PointType::Regular,
-            curve:  curve_trivial(),
-        };
+        let c = curve_trivial();
+        let p = c.point(2, 3);
+        let q = c.point(9, 6);
 
         let sum = p.clone() + q;
-        assert_eq!(sum.x, buint(12));
-        assert_eq!(sum.y, buint(2));
+        assert_eq!(sum.x.value, buint(12));
+        assert_eq!(sum.y.value, buint(2));
 
         let double = p.clone() + p;
-        assert_eq!(double.x, buint(12));
-        assert_eq!(double.y, buint(11));
+        assert_eq!(double.x.value, buint(12));
+        assert_eq!(double.y.value, buint(11));
     }
 
     #[test]
     // Test case taken from page 289 of ItMC book (addition table)
     fn test_addition_yields_infinity() {
-        let p = Point {
-            x: buint(1),
-            y: buint(8),
-            r#type: crate::PointType::Regular,
-            curve:  curve_trivial(),
-        };
-
-        let q = Point {
-            x: buint(1),
-            y: buint(5),
-            r#type: crate::PointType::Regular,
-            curve:  curve_trivial(),
-        };
+        let c = curve_trivial();
+        let p = c.point(1, 8);
+        let q = c.point(1, 5);
 
         let sum = p + q;
-        assert_eq!(sum.r#type, PointType::Infinite);
+        println!("{}", sum);
+        assert_eq!(sum.is_at_infinity(), true);
     }
     
     #[test]
     fn test_point_addition_on_secp256k1() {
-        let g = curve_secp256k1_generator();
+        let x  = BigUint::parse_bytes(b"79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798", 16).unwrap();
+        let y  = BigUint::parse_bytes(b"483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8", 16).unwrap();
+        let curve = curve_secp256k1();
+        let g = curve.point(x, y);
 
-        let sum = g.clone() + g;
+        let sum = g.clone() + g.clone();
 
         // These test values were obtained by referencing another secp256k1 / Bitcoin library: my own, written in JS a while back, specifically for Bitcoin.
         // See https://github.com/ArnaudBrousseau/arnaudbrousseau.com/blob/master/static/labs/keys.deconstructed/keys.deconstructed.js
@@ -464,71 +447,53 @@ mod test {
         // Hence proving the correctness of these expected values: we just showed that they yield the right BTC address!
         // --------------------------------------------------------------------------------------------------------------------------------------------------
 
-        assert_eq!(sum.x, expected_x);
-        assert_eq!(sum.y, expected_y);
-        assert_eq!(sum.curve.name, "secp256k1");
+        assert_eq!(sum.clone().x.value, expected_x);
+        assert_eq!(sum.clone().y.value, expected_y);
+        assert_eq!(sum.modulus().unwrap(), curve_secp256k1().p);
     }
 
     #[test]
     fn test_addition_with_infinity_point() {
-        let p = Point {
-            x: buint(1),
-            y: buint(2),
-            r#type: crate::PointType::Regular,
-            curve:  curve_secp256k1(),
-        };
+        let c = curve_secp256k1();
+        let p = c.point(1, 2);
+        let inf = c.point(0, 0);
 
-        let infinity = Point {
-            x: buint(0),
-            y: buint(0),
-            r#type: crate::PointType::Infinite,
-            curve:  curve_secp256k1(),
-        };
-
-        assert_eq!(p.clone() + infinity.clone(), p.clone());
-        assert_eq!(infinity.clone() + p.clone(), p.clone());
-        assert_eq!(infinity.clone() + infinity.clone(), infinity.clone());
-        assert_eq!((p.clone() + -p.clone()).r#type, PointType::Infinite);
+        assert_eq!(p.clone() + inf.clone(), p.clone());
+        assert_eq!(inf.clone() + p.clone(), p.clone());
+        assert_eq!(inf.clone() + inf.clone(), c.point_at_infinity());
+        assert_eq!((p.clone() + -p.clone()), c.point_at_infinity());
     }
 
     #[test]
     fn test_point_multiplication() {
-        let p = Point {
-            x: buint(1),
-            y: buint(8),
-            r#type: crate::PointType::Regular,
-            curve:  curve_trivial(),
-        };
+        let c = curve_trivial();
+        let p = c.point(1, 8);
 
         let noop_mul = p.mul(buint(1));
         assert_eq!(noop_mul.x, p.x);
         assert_eq!(noop_mul.y, p.y);
 
         let double = p.mul(buint(2));
-        assert_eq!(double.x, buint(2));
-        assert_eq!(double.y, buint(3));
+        assert_eq!(double.x.value, buint(2));
+        assert_eq!(double.y.value, buint(3));
 
         let triple = p.mul(buint(3));
-        assert_eq!(triple.x, buint(9));
-        assert_eq!(triple.y, buint(6));
+        assert_eq!(triple.x.value, buint(9));
+        assert_eq!(triple.y.value, buint(6));
 
         let quadruple = p.mul(buint(4));
-        assert_eq!(quadruple.x, buint(12));
-        assert_eq!(quadruple.y, buint(11));
+        assert_eq!(quadruple.x.value, buint(12));
+        assert_eq!(quadruple.y.value, buint(11));
 
         let quintuple = p.mul(buint(5));
-        assert_eq!(quintuple.x, buint(12));
-        assert_eq!(quintuple.y, buint(2));
+        assert_eq!(quintuple.x.value, buint(12));
+        assert_eq!(quintuple.y.value, buint(2));
 
         let times_nine = p.mul(buint(9));
-        assert_eq!(times_nine.r#type, PointType::Infinite);
-        assert_eq!(times_nine.x, buint(0));
-        assert_eq!(times_nine.y, buint(0));
+        assert_eq!(times_nine, c.point_at_infinity());
 
         // Any multiple of 9 should yield the point at infinity
         let times_thousand = p.mul(buint(9000));
-        assert_eq!(times_thousand.r#type, PointType::Infinite);
-        assert_eq!(times_thousand.x, buint(0));
-        assert_eq!(times_thousand.y, buint(0));
+        assert_eq!(times_thousand, c.point_at_infinity());
     }
 }

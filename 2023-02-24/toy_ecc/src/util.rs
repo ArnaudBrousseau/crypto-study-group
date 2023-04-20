@@ -1,6 +1,7 @@
 use num_bigint::{BigUint, ToBigUint, ToBigInt, BigInt};
 
 // I'm tired of writing x.to_biguint().unwrap()...
+// .............. ...and x.to_bigint().unwrap()...
 
 pub fn buint<T: ToBigUint>(val: T) -> BigUint {
     val.to_biguint().unwrap()

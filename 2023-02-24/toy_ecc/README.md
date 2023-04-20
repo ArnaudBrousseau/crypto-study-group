@@ -1,8 +1,12 @@
-# toy_ecc
+# Toy ECC in Rust
 
-This is a port of https://github.com/cjeudy/EllipticCurves/blob/master/EC.py in Rust
+This folder contains a port of https://github.com/cjeudy/EllipticCurves/blob/master/EC.py in Rust.
 
 Here is the code in its entirety in case the original source is deleted:
+
+<details>
+<summary>Click me to display source</summary>
+
 ```python
 # -*- coding: utf-8 -*-
 """
@@ -326,11 +330,15 @@ def non_adjacent(n):
 
     return non_adj_repr
 ```
+</details>
 
 ## Notable tweaks
 
 * Rust forces the use of a BigNum library. I chose `num_bigint`.
 * The `order` property on curve types seems unused (aside from display). Because of the risk of inconsistencies, decided to go without it.
 * Coefficients for elliptic curves are _not_ just integers. They're field elements. Hence a new `Element` type to hold value and modulus.
-* The Python library code above has the potential to be inconsistent because `type` is stored as an attribute, independently of the coefficients. I think it's more productive to _derive_ the curve type, on the fly, when display is called, from the curve coefficients.
+* The Python library code above has the potential to be inconsistent because `Curve.type` is stored as an attribute, independently of the coefficients. I think it's more productive to _derive_ the curve type, on the fly, when display is called, from the curve coefficients.
 * Curve "type" is a bad name. The proper terminology is "form".
+* I ruled against Point "type" to distinguish between infinite and normal points. Instead, x and y are `Element`s. and `is_at_infinity` is a method on `Point` to determine whether a point has both of its coordinates equal to the 0 element. Less prone to error.
+* Point coordinates are field elements, and the constructor checks that they belong on the same field.
+* Error handling in Rust is usually best without `unwrap`s, but overloading the arithmetic operators forced me to use `unwrap` more than I'd have liked (because their APIs are hardcoded and do not allow for `Result`-type return values)
