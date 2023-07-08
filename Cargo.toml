@@ -15,4 +15,5 @@ members = [
   "2023-01-13/miller_rabin",
   "2023-02-03/generators",
   "2023-02-24/toy_ecc",
+  "2023-03-10/bls12-381",
 ]
