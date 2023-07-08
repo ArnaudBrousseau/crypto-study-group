@@ -1,5 +1,7 @@
 {
     "cSpell.words": [
+        "arkworks",
+        "Arnaud",
         "bitvec",
         "ciphertext",
         "cryptosystem",
@@ -7,6 +9,9 @@
         "dalek",
         "Diffie",
         "Gamal",
+        "hasher",
+        "hashers",
+        "HKDF",
         "keygen",
         "Keypair",
         "Kohno",
@@ -14,6 +19,7 @@
         "PKCS",
         "primality",
         "PRNG",
+        "pubkey",
         "Schneier",
         "Schnorr",
         "secp",
