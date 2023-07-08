@@ -5,7 +5,7 @@
 //! ----
 //! Original discussion for this serialization standard: https://github.com/zcash/zcash/issues/2517
 use ark_ec::AffineRepr;
-use ark_ff::{PrimeField};
+use ark_ff::PrimeField;
 use num_bigint::BigInt;
 
 use crate::types::*;
@@ -16,30 +16,32 @@ const G2_COMPRESSED_POINT_SIZE: usize = 96;
 const G2_UNCOMPRESSED_POINT_SIZE: usize = 192;
 
 const G1_COMPRESSED_POINT_AT_INFINITY: &[u8; G1_COMPRESSED_POINT_SIZE] = &[
-    0b11000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0b11000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 ];
 
 const G1_UNCOMPRESSED_POINT_AT_INFINITY: &[u8; G1_UNCOMPRESSED_POINT_SIZE] = &[
-    0b01000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0b01000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0,
 ];
 
 const G2_COMPRESSED_POINT_AT_INFINITY: &[u8; G2_COMPRESSED_POINT_SIZE] = &[
-    0b11000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0b11000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0,
 ];
 
 const G2_UNCOMPRESSED_POINT_AT_INFINITY: &[u8; G2_UNCOMPRESSED_POINT_SIZE] = &[
-    0b01000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0b01000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0,
 ];
 
 /// Converts a point on E1 to bytes. These bytes represent the compressed encoding of the point.
@@ -76,10 +78,10 @@ pub fn point_to_octets_e1(p: G1AffinePoint) -> Octets {
 /// See https://github.com/zkcrypto/pairing/tree/fa8103764a07bd273927447d434de18aace252d3/src/bls12_381#serialization
 pub fn point_to_octets_uncompressed_e1(p: G1AffinePoint) -> Octets {
     if p.is_zero() {
-        return G1_UNCOMPRESSED_POINT_AT_INFINITY.to_vec()
+        return G1_UNCOMPRESSED_POINT_AT_INFINITY.to_vec();
     }
     let (x, y) = p.xy().expect("point is not at infinity -- checked above!");
-    let mut res: Vec<u8> = vec![];   
+    let mut res: Vec<u8> = vec![];
     res.append(&mut field_element_to_bytes(x));
     res.append(&mut field_element_to_bytes(y));
     res
@@ -95,45 +97,49 @@ pub fn octets_to_point_e1(octets: &Octets) -> Result<G1AffinePoint, BLSError> {
     match octets.len() {
         G1_COMPRESSED_POINT_SIZE => {
             if !is_compressed(octets) {
-                return Err(BLSError::CompressedBitNotSet)
+                return Err(BLSError::CompressedBitNotSet);
             }
             if is_at_infinity(octets) {
                 if octets == G1_COMPRESSED_POINT_AT_INFINITY {
-                    return Ok(G1AffinePoint::identity())
+                    return Ok(G1AffinePoint::identity());
                 } else {
-                    return Err(BLSError::MalformedOctets)
+                    return Err(BLSError::MalformedOctets);
                 }
             }
             let uses_largest_y = uses_largest_y(octets);
-            let x_bytes: [u8; G1_COMPRESSED_POINT_SIZE] = mask_first_3_bits(octets).try_into().expect("sized in surrounding match");
+            let x_bytes: [u8; G1_COMPRESSED_POINT_SIZE] = mask_first_3_bits(octets)
+                .try_into()
+                .expect("sized in surrounding match");
             let x = BLSFq::from_be_bytes_mod_order(&x_bytes);
-            let (y1, y2) = G1AffinePoint::get_ys_from_x_unchecked(x).ok_or(BLSError::BadXCoordinate)?;
+            let (y1, y2) =
+                G1AffinePoint::get_ys_from_x_unchecked(x).ok_or(BLSError::BadXCoordinate)?;
 
             if uses_largest_y {
                 Ok(G1AffinePoint::new(x, y2))
             } else {
                 Ok(G1AffinePoint::new(x, y1))
             }
-        },
+        }
         G1_UNCOMPRESSED_POINT_SIZE => {
             if is_compressed(octets) {
-                return Err(BLSError::CompressedBitSet)
+                return Err(BLSError::CompressedBitSet);
             }
             if is_at_infinity(octets) {
                 if octets == G1_UNCOMPRESSED_POINT_AT_INFINITY {
-                    return Ok(G1AffinePoint::identity())
+                    return Ok(G1AffinePoint::identity());
                 } else {
-                    return Err(BLSError::MalformedOctets)
+                    return Err(BLSError::MalformedOctets);
                 }
             }
-            let xy_bytes: [u8; G1_UNCOMPRESSED_POINT_SIZE] = mask_first_3_bits(octets).try_into().expect("sized in surrounding match");
-            let x = BLSFq::from_be_bytes_mod_order(&xy_bytes[..G1_UNCOMPRESSED_POINT_SIZE/2]);
-            let y = BLSFq::from_be_bytes_mod_order(&xy_bytes[G1_UNCOMPRESSED_POINT_SIZE/2..]);
+            let xy_bytes: [u8; G1_UNCOMPRESSED_POINT_SIZE] = mask_first_3_bits(octets)
+                .try_into()
+                .expect("sized in surrounding match");
+            let x = BLSFq::from_be_bytes_mod_order(&xy_bytes[..G1_UNCOMPRESSED_POINT_SIZE / 2]);
+            let y = BLSFq::from_be_bytes_mod_order(&xy_bytes[G1_UNCOMPRESSED_POINT_SIZE / 2..]);
             Ok(G1AffinePoint::new(x, y))
-        },
-        _ => Err(BLSError::BadOctetLength)
+        }
+        _ => Err(BLSError::BadOctetLength),
     }
-
 }
 
 /// From the spec:
@@ -173,7 +179,7 @@ pub fn point_to_octets_uncompressed_e2(p: G2AffinePoint) -> Octets {
     //let p_prime: types::G2ProjectivePoint = p.into();
     if let Some((x, y)) = p.xy() {
         let mut w: Vec<u8> = vec![];
-        
+
         w.append(&mut field_element_to_bytes(&x.c1));
         w.append(&mut field_element_to_bytes(&x.c0));
         w.append(&mut field_element_to_bytes(&y.c1));
@@ -196,58 +202,66 @@ pub fn octets_to_point_e2(octets: &Octets) -> Result<G2AffinePoint, BLSError> {
     match octets.len() {
         G2_COMPRESSED_POINT_SIZE => {
             if !is_compressed(octets) {
-                return Err(BLSError::CompressedBitNotSet)
+                return Err(BLSError::CompressedBitNotSet);
             }
             if is_at_infinity(octets) {
                 if octets == G2_COMPRESSED_POINT_AT_INFINITY {
-                    return Ok(G2AffinePoint::identity())
+                    return Ok(G2AffinePoint::identity());
                 } else {
-                    return Err(BLSError::MalformedOctets)
+                    return Err(BLSError::MalformedOctets);
                 }
             }
             let uses_largest_y = uses_largest_y(octets);
-            let x_bytes: [u8; G2_COMPRESSED_POINT_SIZE] = mask_first_3_bits(octets).try_into().expect("sized in surrounding match");
-            let x_c1 = BLSFq::from_be_bytes_mod_order(&x_bytes[..G2_COMPRESSED_POINT_SIZE/2]);
-            let x_c0 = BLSFq::from_be_bytes_mod_order(&x_bytes[G2_COMPRESSED_POINT_SIZE/2..]);
+            let x_bytes: [u8; G2_COMPRESSED_POINT_SIZE] = mask_first_3_bits(octets)
+                .try_into()
+                .expect("sized in surrounding match");
+            let x_c1 = BLSFq::from_be_bytes_mod_order(&x_bytes[..G2_COMPRESSED_POINT_SIZE / 2]);
+            let x_c0 = BLSFq::from_be_bytes_mod_order(&x_bytes[G2_COMPRESSED_POINT_SIZE / 2..]);
 
             let x = BLSFq2::new(x_c0, x_c1);
-            let (y1, y2) = G2AffinePoint::get_ys_from_x_unchecked(x).ok_or(BLSError::BadXCoordinate)?;
+            let (y1, y2) =
+                G2AffinePoint::get_ys_from_x_unchecked(x).ok_or(BLSError::BadXCoordinate)?;
 
             if uses_largest_y {
                 Ok(G2AffinePoint::new(x, y2))
             } else {
                 Ok(G2AffinePoint::new(x, y1))
             }
-        },
+        }
         G2_UNCOMPRESSED_POINT_SIZE => {
             if is_compressed(octets) {
-                return Err(BLSError::CompressedBitSet)
+                return Err(BLSError::CompressedBitSet);
             }
             if is_at_infinity(octets) {
                 if octets == G2_UNCOMPRESSED_POINT_AT_INFINITY {
-                    return Ok(G2AffinePoint::identity())
+                    return Ok(G2AffinePoint::identity());
                 } else {
-                    return Err(BLSError::MalformedOctets)
+                    return Err(BLSError::MalformedOctets);
                 }
             }
-            let xy_bytes: [u8; G2_UNCOMPRESSED_POINT_SIZE] = mask_first_3_bits(octets).try_into().expect("sized in surrounding match");
-            let chunk_size = G2_UNCOMPRESSED_POINT_SIZE/4;
+            let xy_bytes: [u8; G2_UNCOMPRESSED_POINT_SIZE] = mask_first_3_bits(octets)
+                .try_into()
+                .expect("sized in surrounding match");
+            let chunk_size = G2_UNCOMPRESSED_POINT_SIZE / 4;
             let x_c1 = BLSFq::from_be_bytes_mod_order(&xy_bytes[..chunk_size]);
-            let x_c0 = BLSFq::from_be_bytes_mod_order(&xy_bytes[chunk_size..2*chunk_size]);
-            let y_c1 = BLSFq::from_be_bytes_mod_order(&xy_bytes[2*chunk_size..3*chunk_size]);
-            let y_c0 = BLSFq::from_be_bytes_mod_order(&xy_bytes[3*chunk_size..]);
-            
+            let x_c0 = BLSFq::from_be_bytes_mod_order(&xy_bytes[chunk_size..2 * chunk_size]);
+            let y_c1 = BLSFq::from_be_bytes_mod_order(&xy_bytes[2 * chunk_size..3 * chunk_size]);
+            let y_c0 = BLSFq::from_be_bytes_mod_order(&xy_bytes[3 * chunk_size..]);
+
             let x = BLSFq2::new(x_c0, x_c1);
             let y = BLSFq2::new(y_c0, y_c1);
             Ok(G2AffinePoint::new(x, y))
-        },
-        _ => Err(BLSError::BadOctetLength)
+        }
+        _ => Err(BLSError::BadOctetLength),
     }
 }
 
 fn mask_first_3_bits(octets: &Octets) -> Octets {
     let mut res = octets.clone();
-    res[0] = res.first().map(|b| b & 0b00011111).expect("res is at least 1 bytes long");
+    res[0] = res
+        .first()
+        .map(|b| b & 0b00011111)
+        .expect("res is at least 1 bytes long");
     res
 }
 
@@ -272,9 +286,10 @@ fn uses_largest_y(octets: &Octets) -> bool {
 /// Then parse it again with BigInt to extract bytes out.
 /// I'm _sure_ there's gotta be a better way, but a simple element.0.to_bytes_be() doesn't seem to be good enough!
 fn field_element_to_bytes(element: &BLSFq) -> Vec<u8> {
-    let i =  BigInt::parse_bytes(element.to_string().as_bytes(), 10).expect("Field Elements have valid coordinates");
+    let i = BigInt::parse_bytes(element.to_string().as_bytes(), 10)
+        .expect("Field Elements have valid coordinates");
     let mut res = i.to_signed_bytes_be();
-    
+
     // Pad to the nearest multiple of 8
     if res.len() % 8 != 0 {
         res.insert(0, 0);

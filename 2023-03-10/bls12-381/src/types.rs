@@ -1,10 +1,9 @@
-
-use ark_bls12_381::g2::Config as G2Config;
 use ark_bls12_381::g1::Config as G1Config;
+use ark_bls12_381::g2::Config as G2Config;
+use ark_bls12_381::Fq2;
+use ark_bls12_381::{Bls12_381, Fq, Fr};
 use ark_ec::pairing::PairingOutput;
 use ark_ec::short_weierstrass::{Affine, Projective};
-use ark_bls12_381::{Fr, Fq, Bls12_381};
-use ark_bls12_381::Fq2;
 use hmac::Hmac;
 use num_bigint::BigInt;
 use sha2::Sha256;
