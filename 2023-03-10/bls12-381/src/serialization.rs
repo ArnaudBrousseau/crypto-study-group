@@ -3,7 +3,7 @@
 //! <https://github.com/zkcrypto/pairing/blob/master/src/bls12_381/README.md#serialization> (broken)
 //! should be <https://github.com/zkcrypto/pairing/tree/fa8103764a07bd273927447d434de18aace252d3/src/bls12_381#serialization> (valid)
 //! ----
-//! Original discussion for this serialization standard: https://github.com/zcash/zcash/issues/2517
+//! Original discussion for this serialization standard: <https://github.com/zcash/zcash/issues/2517>
 use ark_ec::AffineRepr;
 use ark_ff::PrimeField;
 use num_bigint::BigInt;
@@ -75,7 +75,7 @@ pub fn point_to_octets_e1(p: G1AffinePoint) -> Octets {
 
 /// Converts a point on E1 to bytes. These bytes represent the uncompressed encoding of the point.
 /// The point at infinity is serialized as all zeroes, except the 2nd-most significant bit is set.
-/// See https://github.com/zkcrypto/pairing/tree/fa8103764a07bd273927447d434de18aace252d3/src/bls12_381#serialization
+/// See <https://github.com/zkcrypto/pairing/tree/fa8103764a07bd273927447d434de18aace252d3/src/bls12_381#serialization>
 pub fn point_to_octets_uncompressed_e1(p: G1AffinePoint) -> Octets {
     if p.is_zero() {
         return G1_UNCOMPRESSED_POINT_AT_INFINITY.to_vec();

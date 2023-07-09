@@ -65,12 +65,12 @@ fn pairing(u: G2AffinePoint, v: G1AffinePoint) -> BLS12381Pairing {
 /// > I2OSP converts a nonnegative integer to an octet string of a specified length.
 ///
 /// Implementation:
-/// > 1.  If x >= 256^xLen, output "integer too large" and stop.
-/// > 2.  Write the integer x in its unique xLen-digit representation in base 256:
-/// >     x = x_(xLen-1) 256^(xLen-1) + x_(xLen-2) 256^(xLen-2) + ... + x_1 256 + x_0,
-/// >     where 0 <= x_i < 256 (note that one or more leading digits will be zero if x is less than 256^(xLen-1)).
-/// > 3.  Let the octet X_i have the integer value x_(xLen-i) for 1 <= i <= xLen.
-/// >     Output the octet string X = X_1 X_2 ... X_xLen.
+/// # 1.  If x >= 256^xLen, output "integer too large" and stop.
+/// # 2.  Write the integer x in its unique xLen-digit representation in base 256:
+/// #     x = x_(xLen-1) 256^(xLen-1) + x_(xLen-2) 256^(xLen-2) + ... + x_1 256 + x_0,
+/// #     where 0 <= x_i < 256 (note that one or more leading digits will be zero if x is less than 256^(xLen-1)).
+/// # 3.  Let the octet X_i have the integer value x_(xLen-i) for 1 <= i <= xLen.
+/// #     Output the octet string X = X_1 X_2 ... X_xLen.
 fn i2osp(x: u64, x_len: usize) -> Result<Vec<u8>, BLSError> {
     // 1
     if x > 256_u64.pow(x_len.try_into().unwrap()) {
@@ -91,10 +91,10 @@ fn i2osp(x: u64, x_len: usize) -> Result<Vec<u8>, BLSError> {
 /// > OS2IP converts an octet string to a nonnegative integer.
 ///
 /// Implementation:
-/// > 1.  Let X_1 X_2 ... X_xLen be the octets of X from first to last,
-/// >     and let x_(xLen-i) be the integer value of the octet X_i for 1 <= i <= xLen.
-/// > 2.  Let x = x_(xLen-1) 256^(xLen-1) + x_(xLen-2) 256^(xLen-2) + ...  + x_1 256 + x_0.
-/// > 3.  Output x.
+/// # 1.  Let X_1 X_2 ... X_xLen be the octets of X from first to last,
+/// #     and let x_(xLen-i) be the integer value of the octet X_i for 1 <= i <= xLen.
+/// # 2.  Let x = x_(xLen-1) 256^(xLen-1) + x_(xLen-2) 256^(xLen-2) + ...  + x_1 256 + x_0.
+/// # 3.  Output x.
 fn os2ip(os: &[u8]) -> BigInt {
     // 1 & 2 & 3
     // The spec is a bit confusing, but step 1 and 2 can be rephrased as "parse bytes as a big-endian integer"
@@ -148,24 +148,13 @@ fn signature_to_point(signature: &Signature) -> Result<G2AffinePoint, BLSError> 
 /// > Generates a secret key SK deterministically from a secret octet string IKM
 ///
 /// Implementation:
-/// > 1. while True:
-/// > 2.     PRK = HKDF-Extract(salt, IKM || I2OSP(0, 1))
-/// > 3.     OKM = HKDF-Expand(PRK, key_info || I2OSP(L, 2), L)
-/// > 4.     SK = OS2IP(OKM) mod r
-/// > 5.     if SK != 0:
-/// > 6.         return SK
-/// > 7.     salt = H(salt)
-///
-/// Note: we use salt H("BLS-SIG-KEYGEN-SALT-") for compatibility with v4 of the spec.
-/// See <https://www.ietf.org/archive/id/draft-irtf-cfrg-bls-signature-05.html#choosesalt>.
-///   1. salt =
-///   2. SK = 0
-///   3. while SK == 0:
-///   4.     salt = H(salt)
-///   5.     PRK = HKDF-Extract(salt, IKM || I2OSP(0, 1))
-///   6.     OKM = HKDF-Expand(PRK, key_info || I2OSP(L, 2), L)
-///   7.     SK = OS2IP(OKM) mod r
-///   8. return SK
+/// # 1. while True:
+/// # 2.     PRK = HKDF-Extract(salt, IKM || I2OSP(0, 1))
+/// # 3.     OKM = HKDF-Expand(PRK, key_info || I2OSP(L, 2), L)
+/// # 4.     SK = OS2IP(OKM) mod r
+/// # 5.     if SK != 0:
+/// # 6.         return SK
+/// # 7.     salt = H(salt)
 pub fn keygen(ikm: &Octets) -> SecretKey {
     // Mentioned by the spec as one of the requirements for IKM
     if ikm.len() < 32 {
@@ -220,9 +209,9 @@ pub fn keygen(ikm: &Octets) -> SecretKey {
 /// > The SkToPk algorithm takes a secret key SK and outputs the corresponding public key PK.
 ///
 /// Implementation:
-/// > 1. xP = SK * P
-/// > 2. PK = point_to_pubkey(xP)
-/// > 3. return PK
+/// # 1. xP = SK * P
+/// # 2. PK = point_to_pubkey(xP)
+/// # 3. return PK
 pub fn sk_to_pk(sk: SecretKey) -> PublicKey {
     // 1
     let g = G1AffinePoint::generator();
@@ -237,10 +226,10 @@ pub fn sk_to_pk(sk: SecretKey) -> PublicKey {
 /// > The CoreSign algorithm computes a signature from SK, a secret key, and message, an octet string.
 ///
 /// The implementation is described as:
-/// > 1. Q = hash_to_point(message)
-/// > 2. R = SK * Q
-/// > 3. signature = point_to_signature(R)
-/// > 4. return signature
+/// # 1. Q = hash_to_point(message)
+/// # 2. R = SK * Q
+/// # 3. signature = point_to_signature(R)
+/// # 4. return signature
 pub fn sign(sk: SecretKey, message: &Octets) -> Result<Signature, BLSError> {
     // 1
     let q = hash_to_point(message);
@@ -260,14 +249,14 @@ pub fn sign(sk: SecretKey, message: &Octets) -> Result<Signature, BLSError> {
 /// > The Aggregate algorithm aggregates multiple signatures into one
 ///
 /// Implementation:
-/// > 1. aggregate = signature_to_point(signature_1)
-/// > 2. If aggregate is INVALID, return INVALID
-/// > 3. for i in 2, ..., n:
-/// > 4.     next = signature_to_point(signature_i)
-/// > 5.     If next is INVALID, return INVALID
-/// > 6.     aggregate = aggregate + next
-/// > 7. signature = point_to_signature(aggregate)
-/// > 8. return signature
+/// # 1. aggregate = signature_to_point(signature_1)
+/// # 2. If aggregate is INVALID, return INVALID
+/// # 3. for i in 2, ..., n:
+/// # 4.     next = signature_to_point(signature_i)
+/// # 5.     If next is INVALID, return INVALID
+/// # 6.     aggregate = aggregate + next
+/// # 7. signature = point_to_signature(aggregate)
+/// # 8. return signature
 pub fn aggregate(signatures: &[Signature]) -> Result<Signature, BLSError> {
     // Not explicitly mentioned by the spec, but if we have fewer than 2 signatures
     // in our input, the aggregate functionality doesn't make sense.
@@ -293,15 +282,15 @@ pub fn aggregate(signatures: &[Signature]) -> Result<Signature, BLSError> {
 /// > The CoreVerify algorithm checks that a signature is valid for the octet string message under the public key PK.
 ///
 /// Implementation:
-/// > 1. R = signature_to_point(signature)
-/// > 2. If R is INVALID, return INVALID
-/// > 3. If signature_subgroup_check(R) is INVALID, return INVALID
-/// > 4. If KeyValidate(PK) is INVALID, return INVALID
-/// > 5. xP = pubkey_to_point(PK)
-/// > 6. Q = hash_to_point(message)
-/// > 7. C1 = pairing(Q, xP)
-/// > 8. C2 = pairing(R, P)
-/// > 9. If C1 == C2, return VALID, else return INVALID
+/// # 1. R = signature_to_point(signature)
+/// # 2. If R is INVALID, return INVALID
+/// # 3. If signature_subgroup_check(R) is INVALID, return INVALID
+/// # 4. If KeyValidate(PK) is INVALID, return INVALID
+/// # 5. xP = pubkey_to_point(PK)
+/// # 6. Q = hash_to_point(message)
+/// # 7. C1 = pairing(Q, xP)
+/// # 8. C2 = pairing(R, P)
+/// # 9. If C1 == C2, return VALID, else return INVALID
 pub fn verify(pk: &PublicKey, message: &Octets, signature: &Signature) -> bool {
     // 1
     let r = match signature_to_point(signature) {
@@ -349,17 +338,17 @@ pub fn verify(pk: &PublicKey, message: &Octets, signature: &Signature) -> bool {
 /// > The CoreAggregateVerify algorithm checks an aggregated signature over several (PK, message) pairs.
 ///
 /// Implementation:
-/// > 1.  R = signature_to_point(signature)
-/// > 2.  If R is INVALID, return INVALID
-/// > 3.  If signature_subgroup_check(R) is INVALID, return INVALID
-/// > 4.  C1 = 1 (the identity element in GT)
-/// > 5.  for i in 1, ..., n:
-/// > 6.      If KeyValidate(PK_i) is INVALID, return INVALID
-/// > 7.      xP = pubkey_to_point(PK_i)
-/// > 8.      Q = hash_to_point(message_i)
-/// > 9.      C1 = C1 * pairing(Q, xP)
-/// > 10. C2 = pairing(R, P)
-/// > 11. If C1 == C2, return VALID, else return INVALID
+/// # 1.  R = signature_to_point(signature)
+/// # 2.  If R is INVALID, return INVALID
+/// # 3.  If signature_subgroup_check(R) is INVALID, return INVALID
+/// # 4.  C1 = 1 (the identity element in GT)
+/// # 5.  for i in 1, ..., n:
+/// # 6.      If KeyValidate(PK_i) is INVALID, return INVALID
+/// # 7.      xP = pubkey_to_point(PK_i)
+/// # 8.      Q = hash_to_point(message_i)
+/// # 9.      C1 = C1 * pairing(Q, xP)
+/// # 10. C2 = pairing(R, P)
+/// # 11. If C1 == C2, return VALID, else return INVALID
 ///
 /// Note: although not strictly mandated by the spec, this function uses const generics to
 /// enforce `public_keys` and `messages` have the same length.
